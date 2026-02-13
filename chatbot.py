@@ -1,60 +1,55 @@
-import random
 import json
-import pickle
-import numpy as np
-import nltk
+import os
+import random
+import re
 
-from nltk.stem import WordNetLemmatizer
-from keras.models import load_model
+# ---------- Load intents.json ----------
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+INTENTS_PATH = os.path.join(BASE_DIR, "intents.json")
 
-lemmatizer = WordNetLemmatizer()
-intents = json.loads(open('C:\Simplilearn\Python\Python projects\chatbot using python\chatbot\intents.json').read())
+with open(INTENTS_PATH, "r", encoding="utf-8") as file:
+    intents = json.load(file)
 
-words = pickle.load(open('words.pkl', 'rb'))
-classes = pickle.load(open('classes.pkl', 'rb'))
-model = load_model('chatbot_model.h5')
+# ---------- Text preprocessing ----------
+def preprocess_text(text):
+    text = text.lower()
+    text = re.sub(r"[^\w\s]", "", text)  # remove punctuation
+    return text.split()
 
+# ---------- Intent matching ----------
+def match_intent(user_words):
+    best_intent = None
+    highest_score = 0
 
-def clean_up_sentence(sentence):
-    sentence_words = nltk.word_tokenize(sentence)
-    sentence_words = [lemmatizer.lemmatize(word) for word in sentence_words]
-    return sentence_words
+    for intent in intents["intents"]:
+        keywords = intent.get("keywords", [])
+        score = sum(1 for word in user_words if word in keywords)
 
-def bag_of_words (sentence):
-    sentence_words = clean_up_sentence(sentence)
-    bag = [0] * len(words)
-    for w in sentence_words:
-        for i, word in enumerate(words):
-            if word == w:
-                bag[i] = 1
-    return np.array(bag)
+        if score > highest_score:
+            highest_score = score
+            best_intent = intent
 
-def predict_class (sentence):
-    bow = bag_of_words (sentence)
-    res = model.predict(np.array([bow]))[0]
-    ERROR_THRESHOLD = 0.25
-    results = [[i, r] for i, r in enumerate(res) if r > ERROR_THRESHOLD]
+    return best_intent
 
-    results.sort(key=lambda x: x[1], reverse=True)
-    return_list = []
-    for r in results:
-        return_list.append({'intent': classes [r[0]], 'probability': str(r[1])})
-    return return_list
+# ---------- Get chatbot response ----------
+def get_response(user_input):
+    user_words = preprocess_text(user_input)
+    intent = match_intent(user_words)
 
-def get_response(intents_list, intents_json):
-    tag = intents_list[0]['intent']
-    list_of_intents = intents_json['intents']
-    for i in list_of_intents:
-        if i['tag'] == tag:
-            result = random.choice (i['responses'])
-            break
-    return result
+    if intent:
+        return random.choice(intent["responses"])
 
-print("GO! Bot is running!")
+    return "Sorry, I couldn't understand that. Please try asking in a different way."
+
+# ---------- Chat loop ----------
+print("MITU Skillologies Chatbot is running (type 'quit' to exit)")
 
 while True:
-    message = input("")
-    ints = predict_class (message)
-    res = get_response (ints, intents)
-    print (res)
-    
+    user_input = input("You: ")
+
+    if user_input.lower() == "quit":
+        print("Bot: Goodbye! Have a great day 😊")
+        break
+
+    response = get_response(user_input)
+    print("Bot:", response)

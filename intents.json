@@ -1,22 +1,191 @@
-{"intents": [
-        {"tag": "greeting",
-         "patterns": ["Hi there", "How are you", "Is anyone there?","Hey","Hola", "Hello", "Good day"],
-         "responses": ["Hello", "Good to see you again", "Hi there, how can I help?"],
-         "context": [""]
-        },
-        {"tag": "goodbye",
-         "patterns": ["Bye", "See you later", "Goodbye", "Nice chatting to you, bye", "Till next time"],
-         "responses": ["See you!", "Have a nice day", "Bye! Come back again soon."],
-         "context": [""]
-        },
-        {"tag": "thanks",
-         "patterns": ["Thanks", "Thank you", "That's helpful", "Awesome, thanks", "Thanks for helping me"],
-         "responses": ["My pleasure", "You're Welcome"],
-         "context": [""]
-        },
-        {"tag": "query",
-         "patterns": ["What is Simplilearn?"],
-         "responses": ["Simplilearn is the popular online Bootcamp & online courses learning platform "],
-         "context": [""]
-        } 
-    ]}
+{
+  "intents": [
+    {
+      "tag": "greeting",
+      "keywords": [
+        "hi",
+        "hello",
+        "hey"
+      ],
+      "responses": [
+        "Hello! Welcome to MITU Skillologies. How can I help you?",
+        "Hi there! How may I assist you today?"
+      ]
+    },
+    {
+      "tag": "goodbye",
+      "keywords": [
+        "bye",
+        "goodbye",
+        "exit",
+        "quit"
+      ],
+      "responses": [
+        "Goodbye! See you soon.",
+        "Thanks for visiting MITU Skillologies!"
+      ]
+    },
+    {
+      "tag": "thanks",
+      "keywords": [
+        "thanks",
+        "thank",
+        "helpful"
+      ],
+      "responses": [
+        "You're welcome!",
+        "Happy to help 😊"
+      ]
+    },
+    {
+      "tag": "about_mitu",
+      "keywords": [
+        "mitu",
+        "skillologies",
+        "about",
+        "institute",
+        "company"
+      ],
+      "responses": [
+        "MITU Skillologies is a professional training institute based in Maharashtra, focused on Data Science, Artificial Intelligence, and emerging technologies.",
+        "MITU Skillologies provides industry-oriented training programs in AI, Data Science, and open-source technologies."
+      ]
+    },
+    {
+      "tag": "mission",
+      "keywords": [
+        "mission",
+        "goal",
+        "vision",
+        "aim"
+      ],
+      "responses": [
+        "Our mission is to democratize Data Science and AI education and make these technologies accessible to everyone, regardless of background."
+      ]
+    },
+    {
+      "tag": "training_approach",
+      "keywords": [
+        "approach",
+        "training",
+        "hands-on",
+        "practical"
+      ],
+      "responses": [
+        "Our training approach focuses on hands-on learning with real-world projects, case studies, and guidance from industry experts."
+      ]
+    },
+    {
+      "tag": "courses",
+      "keywords": [
+        "courses",
+        "training",
+        "technologies",
+        "programs"
+      ],
+      "responses": [
+        "We offer training in Data Science, Artificial Intelligence, Machine Learning, Python, Cloud Computing, IoT, Cyber Security, Linux, Web Development, and more."
+      ]
+    },
+    {
+      "tag": "specific_technology",
+      "keywords": [
+        "python",
+        "java",
+        "iot",
+        "linux",
+        "cloud",
+        "data science",
+        "ai",
+        "machine learning"
+      ],
+      "responses": [
+        "Yes, we provide specialized training in this technology. Please contact us for course duration and enrollment details."
+      ]
+    },
+    {
+      "tag": "workshops",
+      "keywords": [
+        "workshop",
+        "workshops",
+        "seminar",
+        "hands-on"
+      ],
+      "responses": [
+        "MITU Skillologies has conducted numerous hands-on workshops across colleges in Maharashtra on AI, Data Science, IoT, Python, and Machine Learning."
+      ]
+    },
+    {
+      "tag": "fdp",
+      "keywords": [
+        "fdp",
+        "faculty",
+        "faculty development"
+      ],
+      "responses": [
+        "We conduct Faculty Development Programs (FDPs) for engineering colleges on Data Science, AI, IoT, Cyber Security, and Machine Learning."
+      ]
+    },
+    {
+      "tag": "social_activities",
+      "keywords": [
+        "social",
+        "activities",
+        "community",
+        "books"
+      ],
+      "responses": [
+        "MITU Skillologies actively participates in social initiatives such as distributing inspirational books to schools on Reading Motivation Day."
+      ]
+    },
+    {
+      "tag": "contact",
+      "keywords": [
+        "contact",
+        "address",
+        "phone",
+        "email",
+        "location"
+      ],
+      "responses": [
+        "You can contact MITU Skillologies at +91 9960163010 or email contact@mitu.co.in. Offices are located in Pune and Nashik."
+      ]
+    },
+    {
+      "tag": "career",
+      "keywords": [
+        "career",
+        "job",
+        "internship",
+        "opportunity"
+      ],
+      "responses": [
+        "MITU Skillologies offers career and internship opportunities. Please contact us via email for current openings."
+      ]
+    },
+    {
+      "tag": "downloads",
+      "keywords": [
+        "download",
+        "notes",
+        "material",
+        "presentations"
+      ],
+      "responses": [
+        "We provide a wide range of study materials and presentations related to AI, Data Science, Python, IoT, and other technologies."
+      ]
+    },
+    {
+      "tag": "blog",
+      "keywords": [
+        "blog",
+        "news",
+        "mou",
+        "collaboration"
+      ],
+      "responses": [
+        "MITU Skillologies regularly shares updates, blogs, and collaborations such as MoUs with engineering colleges."
+      ]
+    }
+  ]
+}

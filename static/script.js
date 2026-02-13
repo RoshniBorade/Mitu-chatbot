@@ -178,4 +178,122 @@ soundBtn.addEventListener("click", () => {
 window.onload = function () {
     var chatBox = document.getElementById("chat-box");
     chatBox.scrollTop = chatBox.scrollHeight;
+    populateCourses();
 };
+
+const courses = [
+    {
+        title: "Data Science & AI",
+        category: "Advanced Technology",
+        icon: "fas fa-brain",
+        description: "Master the future with hands-on training in Data Science and Artificial Intelligence. Learn to transform businesses through data.",
+        duration: "8 Weeks",
+        syllabus: ["Intro to Data Science", "Machine Learning Algorithms", "Neural Networks & Deep Learning", "AI Ethics & Applications", "Real-world Projects"]
+    },
+    {
+        title: "Python Programming",
+        category: "Programming",
+        icon: "fab fa-python",
+        description: "From basics to system-level programming. The perfect foundation for automation and modern software development.",
+        duration: "4 Weeks",
+        syllabus: ["Python Basics & Syntax", "Control Structures", "Functional Programming", "File I/O & Modules", "System Programming with Python"]
+    },
+    {
+        title: "Linux Administration",
+        category: "Operating Systems",
+        icon: "fab fa-linux",
+        description: "Comprehensive training in Linux Essentials, Administration, and Kernel Programming. Become an open-source expert.",
+        duration: "6 Weeks",
+        syllabus: ["Linux Essentials", "User & Group Management", "System Administration", "Kernel Programming Basics", "Shell Scripting & Automation"]
+    },
+    {
+        title: "Cloud Computing",
+        category: "Cloud",
+        icon: "fas fa-cloud",
+        description: "Master Virtualization and OpenStack. Learn to manage and scale modern cloud infrastructures.",
+        duration: "5 Weeks",
+        syllabus: ["Cloud Fundamentals", "Virtualization Technologies", "OpenStack Architecture", "Cloud Storage & Security", "Managing Cloud Infrastructure"]
+    },
+    {
+        title: "IoT & Raspberry Pi",
+        category: "Hardware",
+        icon: "fas fa-microchip",
+        description: "Dive into hardware with Raspberry Pi and Arduino. Build smart connected systems for the modern age.",
+        duration: "6 Weeks",
+        syllabus: ["Electronic Fundamentals", "Raspberry Pi & Arduino Setup", "Sensors & Actuators", "IoT Protocols (MQTT/HTTP)", "End-to-End IoT Project"]
+    },
+    {
+        title: "Full Stack Web Dev",
+        category: "Web Computing",
+        icon: "fas fa-code",
+        description: "Master PHP, WordPress, and database management. Build responsive, professional websites from scratch.",
+        duration: "8 Weeks",
+        syllabus: ["HTML5 & CSS3 Essentials", "Responsive Design with Bootstrap", "PHP & MySQL Database", "CMS with WordPress", "Web Security Best Practices"]
+    }
+];
+
+let selectedCourse = null;
+
+function showCourses() {
+    document.getElementById("main-chat-window").style.display = "none";
+    document.getElementById("course-explorer").style.display = "flex";
+}
+
+function showChat() {
+    document.getElementById("main-chat-window").style.display = "flex";
+    document.getElementById("course-explorer").style.display = "none";
+}
+
+function populateCourses() {
+    const grid = document.querySelector(".course-grid");
+    if (!grid) return;
+
+    grid.innerHTML = courses.map((course, index) => `
+        <div class="course-card" onclick="openCourseModal(${index})">
+            <div class="course-icon"><i class="${course.icon}"></i></div>
+            <div class="course-category">${course.category}</div>
+            <h4>${course.title}</h4>
+            <p>${course.description}</p>
+            <div class="course-footer">
+                <span>View Details</span>
+                <i class="fas fa-arrow-right"></i>
+            </div>
+        </div>
+    `).join("");
+}
+
+function openCourseModal(index) {
+    const course = courses[index];
+    selectedCourse = course;
+
+    document.getElementById("modal-icon").className = "course-icon " + course.icon;
+    document.getElementById("modal-title").innerText = course.title;
+    document.getElementById("modal-duration").innerText = course.duration;
+    document.getElementById("modal-category").innerText = course.category;
+
+    const syllabusList = document.getElementById("modal-syllabus");
+    syllabusList.innerHTML = course.syllabus.map(item => `<li>${item}</li>`).join("");
+
+    document.getElementById("course-modal").style.display = "flex";
+}
+
+function closeModal() {
+    document.getElementById("course-modal").style.display = "none";
+}
+
+function askAboutSelectedCourse() {
+    if (!selectedCourse) return;
+    closeModal();
+    showChat();
+    const input = document.getElementById("user-input");
+    input.value = "Tell me more about " + selectedCourse.title;
+    sendMessage();
+}
+
+// Close modal when clicking outside of it
+window.onclick = function (event) {
+    const modal = document.getElementById("course-modal");
+    if (event.target == modal) {
+        closeModal();
+    }
+}

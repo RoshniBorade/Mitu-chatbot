@@ -272,10 +272,145 @@ body {
     color: white;
 }
 
+/* Sidebar Nav Item Styling */
+.nav-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    color: var(--text-color);
+    text-decoration: none;
+    border-radius: 5px;
+    margin-bottom: 5px;
+    transition: background 0.2s;
+    font-weight: 500;
+}
+
+.nav-item i {
+    margin-right: 10px;
+}
+
+.nav-item:hover {
+    background-color: #e9ecef;
+}
+
 .main-chat {
     flex: 1;
     display: flex;
     flex-direction: column;
+}
+
+/* Course Explorer Styles */
+.course-explorer {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background-color: #fcfcfc;
+    padding: 30px;
+    overflow-y: auto;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.explorer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 15px;
+}
+
+.explorer-header h3 {
+    margin: 0;
+    font-size: 1.8rem;
+    color: var(--primary-color);
+}
+
+.close-explorer {
+    background: none;
+    border: 1px solid var(--primary-color);
+    color: var(--primary-color);
+    padding: 8px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-weight: 500;
+}
+
+.close-explorer:hover {
+    background: var(--primary-color);
+    color: white;
+}
+
+.course-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 25px;
+}
+
+.course-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    padding: 25px;
+    border: 1px solid var(--border-color);
+    transition: transform 0.3s, box-shadow 0.3s;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+}
+
+.course-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    border-color: var(--primary-color);
+}
+
+.course-icon {
+    font-size: 2.5rem;
+    color: var(--primary-color);
+    margin-bottom: 15px;
+}
+
+.course-card h4 {
+    margin: 0 0 10px 0;
+    font-size: 1.3rem;
+    color: var(--text-color);
+}
+
+.course-category {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    color: var(--light-text);
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+}
+
+.course-card p {
+    font-size: 0.95rem;
+    color: var(--light-text);
+    line-height: 1.6;
+    margin-bottom: 20px;
+    flex: 1;
+}
+
+.course-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 500;
+    color: var(--primary-color);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
 .chat-header {
@@ -410,16 +545,128 @@ body {
     animation: pulse 1.5s infinite;
 }
 
-@keyframes pulse {
-    0% {
-        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+    justify-content: center;
+    align-items: center;
+    animation: fadeIn 0.3s;
+}
+
+.modal-content {
+    background-color: white;
+    padding: 30px;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 600px;
+    position: relative;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    animation: slideUp 0.4s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(50px);
+        opacity: 0;
     }
 
-    70% {
-        box-shadow: 0 0 0 10px rgba(220, 53, 69, 0);
+    to {
+        transform: translateY(0);
+        opacity: 1;
     }
+}
 
-    100% {
-        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
-    }
+.close-modal {
+    position: absolute;
+    right: 20px;
+    top: 15px;
+    font-size: 28px;
+    font-weight: bold;
+    color: #aaa;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.close-modal:hover {
+    color: var(--error-color);
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    gap: 15px;
+}
+
+.modal-header h2 {
+    margin: 0;
+    color: var(--primary-color);
+}
+
+.course-meta {
+    display: flex;
+    gap: 20px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    margin-bottom: 25px;
+}
+
+.course-meta p {
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+.syllabus-section h3 {
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+}
+
+.syllabus-section ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.syllabus-section li {
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    align-items: center;
+}
+
+.syllabus-section li::before {
+    content: "•";
+    color: var(--primary-color);
+    font-weight: bold;
+    display: inline-block;
+    width: 1.5em;
+    font-size: 1.2rem;
+}
+
+.enroll-btn {
+    width: 100%;
+    padding: 12px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 500;
+    margin-top: 25px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.enroll-btn:hover {
+    background-color: var(--secondary-color);
 }

@@ -22,6 +22,8 @@
             </div>
             <nav class="nav-links">
                 <a href="{{ url_for('new_chat') }}" class="new-chat-btn"><i class="fas fa-plus"></i> New Chat</a>
+                <a href="javascript:void(0)" onclick="showCourses()" class="nav-item courses-btn"><i
+                        class="fas fa-graduation-cap"></i> Courses</a>
 
                 <div class="session-list">
                     {% for session in sessions %}
@@ -38,9 +40,9 @@
             </div>
         </div>
 
-        <div class="main-chat">
+        <div class="main-chat" id="main-chat-window">
             <div class="chat-header">
-                <h3>Chat Session</h3>
+                <h3 id="chat-title">Chat Session</h3>
                 <button id="sound-btn" class="icon-btn header-btn"><i class="fas fa-volume-up"></i></button>
             </div>
             <div class="chat-box" id="chat-box">
@@ -75,6 +77,42 @@
                         class="fas fa-paper-plane"></i></button>
             </div>
         </div>
+
+        <!-- Course Explorer Section (Hidden by default) -->
+        <div class="course-explorer" id="course-explorer" style="display: none;">
+            <div class="explorer-header">
+                <h3>Our Popular Courses</h3>
+                <button onclick="showChat()" class="close-explorer"><i class="fas fa-times"></i> Back to Chat</button>
+            </div>
+            <div class="course-grid">
+                <!-- Courses will be populated by JS -->
+            </div>
+        </div>
+
+        <!-- Course Detail Modal -->
+        <div id="course-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-modal" onclick="closeModal()">&times;</span>
+                <div class="modal-body">
+                    <div class="modal-header">
+                        <i id="modal-icon" class="course-icon"></i>
+                        <h2 id="modal-title"></h2>
+                    </div>
+                    <div class="course-meta">
+                        <p><strong><i class="fas fa-clock"></i> Duration:</strong> <span id="modal-duration"></span></p>
+                        <p><strong><i class="fas fa-tag"></i> Category:</strong> <span id="modal-category"></span></p>
+                    </div>
+                    <div class="syllabus-section">
+                        <h3><i class="fas fa-list-ul"></i> Syllabus Highlights</h3>
+                        <ul id="modal-syllabus">
+                            <!-- Syllabus items will be populated by JS -->
+                        </ul>
+                    </div>
+                    <button class="enroll-btn" onclick="askAboutSelectedCourse()">Discuss this course with Bot</button>
+                </div>
+            </div>
+        </div>
+    </div>
     </div>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>

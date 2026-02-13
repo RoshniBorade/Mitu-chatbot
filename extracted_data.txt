@@ -1,0 +1,141 @@
+MITU SKILLOGIES WEBSITE DATA
+Welcome
+In order to provide the training on open source software and hardware, the “MITU Skillologies” is working at Pune city of Maharashtra.
+INDEX:
+1.HOME
+Empowering the Future with Data Science and Artificial Intelligence
+In today’s data-driven world, the ability to harness the power of data is essential for success. At MITU Skillologies, we are passionate about empowering individuals and organizations to transform their businesses through data science and artificial intelligence (AI). We are a leading provider of comprehensive training programs designed to equip you with the skills and knowledge you need to thrive in this exciting and ever-evolving field.
+Genesis Program on Artificial Intelligence
+Our Mission
+Our mission is to democratize data science and AI education, making these transformative technologies accessible to everyone. We believe that everyone has the potential to become a data scientist or AI expert, regardless of their background or experience.
+Our Approach
+Our approach to training is focused on providing hands-on, practical experience. We believe that the best way to learn is by doing, so we incorporate real-world projects and case studies into our curriculum. Our instructors are industry experts with a wealth of experience, and they are committed to providing personalized support to our students.
+Our Commitment to Quality
+We are committed to providing the highest quality training available. Our courses are rigorously developed and continuously updated to reflect the latest industry trends. We are also proud to be an accredited training provider, ensuring that our programs meet the highest standards of excellence.
+Your Future with Data Science and AI
+With data science and AI skills, you can open doors to a world of possibilities. You can pursue a rewarding career in a variety of industries, including technology, finance, healthcare, and more. You can also use your skills to make a positive impact on the world by solving complex problems and developing innovative solutions.
+Join Us on the Journey
+We invite you to join us on our journey to empower the future with data science and AI. Our training programs can help you achieve your goals, whether you are a complete beginner or a seasoned professional looking to advance your career.
+2.COMPANY PROFILE
+1.Faculty Development Programs
+2. Our Team
+Executive Team:
+Rashmi R. Thorave, (B.E. Mechanical), Founder and Managing Director.
+Amit B. Kute, (B. Com, ICWA), Chief Accounting Officer.
+Manda Pawar, (M.B.A.), HR Manager.
+Resource Persons and Trainers:
+Tushar B. Kute (M.E. CSE), Sr. Data Scientist, MITU Research, Pune.
+Vivek D. Patil (PhD, Computer), Asst. Professor, VIIT, Pune
+Aaditya S. Thakare, (B.E. Civil), Researcher and Trainer, MITU Skillologies, Pune
+Pramod Jagdale (B.E. Computer), Software Developer DELL EMC at Bengaluru.
+Amol B. Kute (M.C.A.), Director of Torna Informatics, Pune.
+Rahul Mahale (B.E.I.T), Senior Software Developer, Big Binary, Bengaluru.
+Ashish Mhalankar, (B.E.I.T.), Director, Four Protocol, Nashik.
+Dilip Jaiswal (B.E.I.T), Software Developer, Mphasis, Mumbai.
+Rohit Londhe, (B.E.I.T.), Cloud Evangelist, RedHat, Pune.
+Mukund Nadgowda, IT Consultant and Trainer, Pune.
+3. Technology Trainings
+Technologies
+Operating Systems
+• Linux Essentials
+• Linux Administration
+• Linux Kernel Programming
+• Linux System Programming
+• Linux Hangout
+• Shell Scripting
+Programming
+• GNU Compiler Collection (GCC)
+• Core Java Programming
+• Core Java with Netbeans
+• Core Java with Eclipse
+• Programming Python
+• Python System Programming
+• See through C
+• Art of Debugging
+• Thinking in Data Structures
+Scripting
+•Ruby and Ruby on Rails
+•Perl Scripting
+Cloud Computing
+•Cloud Computing with Virtualization
+• Cloud with OpenStack
+Parallel Computing
+• Cuda Programming
+Security
+• Ethical hacking with Kali Linux
+Database
+• MongoDB
+• Hadoop and Big Data Sets
+Android
+• Android App Development
+Hardware
+• Raspberry Pi
+Web Development
+• PHP and PHP Myadmin
+• Web development with WordPress
+• Web development with Drupal
+• Web development with Joomla
+Advanced Programming
+• Scilab
+• Programming GTK+
+• Computer Graphics with OpenGL
+• Statistical Programming with R
+4. List of Student Workshops Conducted
+3.COURSES
+4.SOCIAL ACTIVITIES
+“Mitu Skillologies” distributed inspirational and motivational books to the Marathi school of Nashik Municipal Corporation (School No. 89) at Mhasrul on the occasion of “Reading Inspiration Day”. This day was celebrated on birth anniversary of former president of India late Dr. A. P. J. Abdul Kalam on 15th October 2015.
+Mitu Skillologies Celebrated “Reading Motivation Day” on occasion of birth anniversary of former president and scientist Dr. A. P. J. Abdul Kalam at Zilla Parishad School, Nanoli [Tal- Maval, Dist- Pune]. Inspiring, Motivating, and Informative books were distributed to the students.
+5.CONTACT
+MITU Skillologies
+Pune Office:
+Second Floor, Ratnatara Complex, Above Airtel Gallery, Kranti Chowk, Navi Sangvi, Pimpri Chinchwad, Maharashtra 411027.
+Google Location
+Nashik Office:
+12, Guruprasad Sneh Nagar, Dindori Road, Mhasrul, Nashik, Maharashtra 422004.
+Google Location
+Contact: +91 9960 16 3010, 9860 66 8565
+Email: contact@mitu.co.in
+MITU Network Forum: https://groups.google.com/forum/#!forum/mitu-network
+Company Presentation: MITU Skillologies – Presentation
+Career Opportunities
+Internship Opportunities
+6.DOWNLOADS
+Introduction to Data Science @ Symbiosis International University
+Android Presentations
+Animation Presentations
+Arduino Presentations
+Artificial Intelligence Presentations
+Artificial Intelligence (Honors course, SPPU, Pune)
+Big Data Presentations
+Blender Study Material
+Blockchain Presentations
+BootStrap Presentations
+C / C++ Programming Data
+Cyber Security Presentations
+Dart Presentations
+Data Science Honors Course (SPPU, Semester-IV)
+Deep Learning Presentations
+Embedded Systems and IOT (TE Computer)
+Flutter Presentations
+HTML Presentations and Programs
+Image Processing Presentations
+IOT Presentations
+IOT Honors Course (SPPU, Semester-IV)
+Knowledge Representation in Artificial Intelligence (SPPU MCA Subject)
+Linux Presentations
+MongoDB Presentations
+Networking Presentations
+PHP Presentations and Programs
+Python Presentations
+Python with Machine Learning Presentations
+R Programming Presentations
+Ruby Presentations
+Software Laboratory – VI (TE IT)
+Soft Computing and Deep Learning (Honors Course, SPPU Pune)
+Special Presentations and Data
+7.BLOG
+RSCOE has Signed MoU with MITU Skillologies
+We at MITU Skillologies are happy to announce the signing of an MoU with the Department of Information Technology, JSPM’s Rajarshi Shahu College of Engineering, Pune!
+This partnership will pave the way for a series of technical activities, skill development programs, and collaborative initiatives aimed at empowering students with future-ready skills.
+A big thank you to Prof. Nihar Rajan (Head, IT) and Prof. Gitanjali Mate for their initiative and support in making this collaboration possible.
+MITUSkillologies #MoUSigning #JSPMRajarshiShahuCollege #SkillDevelopment #TechCollaboration #FutureSkills #EngineeringEducation #ITDepartment #EmpoweringYouth #RSCOE #Pune

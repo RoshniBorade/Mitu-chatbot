@@ -71,8 +71,11 @@ def match_intent(user_text):
     for intent in intents["intents"]:
         score = 0
         for keyword in intent.get("keywords", []):
-            if keyword in user_text:
-                score += 1
+            # Check for keyword in processed user text
+            if keyword.lower() in user_text:
+                # Score based on how many words match to favor specific keywords
+                # e.g. "data science" (2 words) > "ai" (1 word)
+                score += len(keyword.split())
 
         if score > highest_score:
             highest_score = score
@@ -88,7 +91,7 @@ def get_response(user_input):
     if intent:
         return random.choice(intent["responses"])
 
-    return "Sorry, I couldn't understand that. You can ask about courses, workshops, contact details, or MITU Skillologies."
+    return "Sorry, I couldn't understand that. For more details, please contact us at +91 9960 16 3010 or visit our Pune/Nashik office."
 
 # ---------- API endpoint ----------
 @app.route("/")

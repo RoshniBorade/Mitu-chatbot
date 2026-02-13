@@ -8,8 +8,8 @@
         "hey"
       ],
       "responses": [
-        "Hello! Welcome to MITU Skillologies. How can I help you?",
-        "Hi there! How may I assist you today?"
+        "Hello! Welcome to MITU Skillologies. How can I help you regarding our courses or team today?",
+        "Hi there! How may I assist you with your learning journey today?"
       ]
     },
     {
@@ -17,8 +17,7 @@
       "keywords": [
         "bye",
         "goodbye",
-        "exit",
-        "quit"
+        "exit"
       ],
       "responses": [
         "Goodbye! See you soon.",
@@ -38,104 +37,71 @@
       ]
     },
     {
-      "tag": "about_mitu",
+      "tag": "data_science_ai",
       "keywords": [
-        "mitu",
-        "skillologies",
-        "about",
-        "institute",
-        "company"
-      ],
-      "responses": [
-        "MITU Skillologies is a professional training institute based in Maharashtra, focused on Data Science, Artificial Intelligence, and emerging technologies.",
-        "MITU Skillologies provides industry-oriented training programs in AI, Data Science, and open-source technologies."
-      ]
-    },
-    {
-      "tag": "mission",
-      "keywords": [
-        "mission",
-        "goal",
-        "vision",
-        "aim"
-      ],
-      "responses": [
-        "Our mission is to democratize Data Science and AI education and make these technologies accessible to everyone, regardless of background."
-      ]
-    },
-    {
-      "tag": "training_approach",
-      "keywords": [
-        "approach",
-        "training",
-        "hands-on",
-        "practical"
-      ],
-      "responses": [
-        "Our training approach focuses on hands-on learning with real-world projects, case studies, and guidance from industry experts."
-      ]
-    },
-    {
-      "tag": "courses",
-      "keywords": [
-        "courses",
-        "training",
-        "technologies",
-        "programs"
-      ],
-      "responses": [
-        "We offer training in Data Science, Artificial Intelligence, Machine Learning, Python, Cloud Computing, IoT, Cyber Security, Linux, Web Development, and more."
-      ]
-    },
-    {
-      "tag": "specific_technology",
-      "keywords": [
-        "python",
-        "java",
-        "iot",
-        "linux",
-        "cloud",
         "data science",
         "ai",
+        "artificial intelligence",
         "machine learning"
       ],
       "responses": [
-        "Yes, we provide specialized training in this technology. Please contact us for course duration and enrollment details."
+        "Our Data Science & AI course (8 weeks) covers Machine Learning, Neural Networks, Deep Learning, and AI Ethics. It's designed to help you transform businesses through data with real-world projects."
       ]
     },
     {
-      "tag": "workshops",
+      "tag": "python_programming",
       "keywords": [
-        "workshop",
-        "workshops",
-        "seminar",
-        "hands-on"
+        "python",
+        "python programming"
       ],
       "responses": [
-        "MITU Skillologies has conducted numerous hands-on workshops across colleges in Maharashtra on AI, Data Science, IoT, Python, and Machine Learning."
+        "The Python Programming course (4 weeks) takes you from basics to system-level programming. It covers functional programming, file I/O, and is a perfect foundation for automation."
       ]
     },
     {
-      "tag": "fdp",
+      "tag": "linux_admin",
       "keywords": [
-        "fdp",
-        "faculty",
-        "faculty development"
+        "linux",
+        "linux administration",
+        "linux essentials"
       ],
       "responses": [
-        "We conduct Faculty Development Programs (FDPs) for engineering colleges on Data Science, AI, IoT, Cyber Security, and Machine Learning."
+        "Our Linux Administration course (6 weeks) includes training in Linux Essentials, User Management, Kernel Programming Basics, and Shell Scripting."
       ]
     },
     {
-      "tag": "social_activities",
+      "tag": "cloud_computing",
       "keywords": [
-        "social",
-        "activities",
-        "community",
-        "books"
+        "cloud",
+        "cloud computing",
+        "openstack"
       ],
       "responses": [
-        "MITU Skillologies actively participates in social initiatives such as distributing inspirational books to schools on Reading Motivation Day."
+        "The Cloud Computing course (5 weeks) focuses on Virtualization and OpenStack architecture, covering storage, security, and infrastructure management."
+      ]
+    },
+    {
+      "tag": "iot_hardware",
+      "keywords": [
+        "iot",
+        "raspberry pi",
+        "arduino",
+        "hardware"
+      ],
+      "responses": [
+        "Our IoT & Raspberry Pi course (6 weeks) bridges electronics and software. You'll work with sensors, actuators, and protocols like MQTT using Raspberry Pi and Arduino."
+      ]
+    },
+    {
+      "tag": "web_development",
+      "keywords": [
+        "web development",
+        "full stack",
+        "php",
+        "wordpress"
+      ],
+      "responses": [
+        "The Full Stack Web Dev course (8 weeks) covers HTML5, CSS3, Bootstrap, PHP, MySQL, and CMS like WordPress to build professional, responsive websites."
       ]
     },
     {
@@ -144,47 +110,23 @@
         "contact",
         "address",
         "phone",
-        "email",
-        "location"
+        "location",
+        "pune",
+        "nashik"
       ],
       "responses": [
-        "You can contact MITU Skillologies at +91 9960163010 or email contact@mitu.co.in. Offices are located in Pune and Nashik."
+        "You can reach us at +91 9960163010. Our offices are in Pune (Navi Sangvi) and Nashik (Mhasrul). Email: contact@mitu.co.in"
       ]
     },
     {
-      "tag": "career",
+      "tag": "about_mitu",
       "keywords": [
-        "career",
-        "job",
-        "internship",
-        "opportunity"
+        "mitu",
+        "skillologies",
+        "about"
       ],
       "responses": [
-        "MITU Skillologies offers career and internship opportunities. Please contact us via email for current openings."
-      ]
-    },
-    {
-      "tag": "downloads",
-      "keywords": [
-        "download",
-        "notes",
-        "material",
-        "presentations"
-      ],
-      "responses": [
-        "We provide a wide range of study materials and presentations related to AI, Data Science, Python, IoT, and other technologies."
-      ]
-    },
-    {
-      "tag": "blog",
-      "keywords": [
-        "blog",
-        "news",
-        "mou",
-        "collaboration"
-      ],
-      "responses": [
-        "MITU Skillologies regularly shares updates, blogs, and collaborations such as MoUs with engineering colleges."
+        "MITU Skillologies is a professional training institute focused on Data Science, AI, and Open Source technologies, empowering individuals through hands-on learning."
       ]
     }
   ]

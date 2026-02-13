@@ -21,8 +21,17 @@
                 <p>Welcome, <strong>{{ user_name }}</strong></p>
             </div>
             <nav class="nav-links">
-                <a href="#" class="active"><i class="fas fa-comment-alt"></i> New Chat</a>
-                <!-- Add more links here if needed -->
+                <a href="{{ url_for('new_chat') }}" class="new-chat-btn"><i class="fas fa-plus"></i> New Chat</a>
+
+                <div class="session-list">
+                    {% for session in sessions %}
+                    <a href="{{ url_for('index', session_id=session[0]) }}"
+                        class="session-item {% if session[0]|string == current_session_id %}active{% endif %}">
+                        <i class="fas fa-comment"></i>
+                        <span class="session-title">{{ session[1] }}</span>
+                    </a>
+                    {% endfor %}
+                </div>
             </nav>
             <div class="logout-section">
                 <a href="{{ url_for('logout') }}" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
@@ -36,12 +45,30 @@
             </div>
             <div class="chat-box" id="chat-box">
                 <!-- Messages will appear here -->
+                {% if not messages %}
                 <div class="bot-message message">
                     <div class="avatar"><img src="{{ url_for('static', filename='logo.png') }}" alt="Bot"></div>
                     <div class="content">Hello {{ user_name }}! How can I help you today?</div>
                 </div>
+                {% endif %}
+                {% for sender, message in messages %}
+                {% if sender == 'user' %}
+                <div class="user-message message">
+                    <div class="content">{{ message }}</div>
+                    <div class="avatar"><img src="https://ui-avatars.com/api/?name={{ user_name }}&background=random"
+                            alt="User"></div>
+                </div>
+                {% else %}
+                <div class="bot-message message">
+                    <div class="avatar"><img src="{{ url_for('static', filename='logo.png') }}" alt="Bot"></div>
+                    <div class="content">{{ message }}</div>
+                </div>
+                {% endif %}
+                {% endfor %}
             </div>
             <div class="input-area">
+                <input type="hidden" id="current-session-id"
+                    value="{{ current_session_id if current_session_id else '' }}">
                 <input type="text" id="user-input" placeholder="Type your message...">
                 <button id="mic-btn" class="icon-btn"><i class="fas fa-microphone"></i></button>
                 <button onclick="sendMessage()" id="send-btn" class="icon-btn"><i

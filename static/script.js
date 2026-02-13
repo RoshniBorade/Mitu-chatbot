@@ -1,15 +1,21 @@
 function sendMessage() {
     var userInput = document.getElementById("user-input").value;
+    var sessionInput = document.getElementById("current-session-id");
+    var sessionId = sessionInput ? sessionInput.value : "";
+
     if (userInput.trim() === "") return;
 
     var chatBox = document.getElementById("chat-box");
+
+    // Get username from the DOM
+    const userName = document.querySelector(".user-info strong").textContent || "User";
 
     // Create user message element
     var userMessageDiv = document.createElement("div");
     userMessageDiv.className = "user-message message";
     userMessageDiv.innerHTML = `
         <div class="content">${userInput}</div>
-        <div class="avatar"><img src="https://ui-avatars.com/api/?name=User&background=random" alt="User"></div>
+        <div class="avatar"><img src="https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=random" alt="User"></div>
     `;
     chatBox.appendChild(userMessageDiv);
 
@@ -25,10 +31,15 @@ function sendMessage() {
         headers: {
             "Content-Type": "application/json"
         },
-        body: JSON.stringify({ message: userInput })
+        body: JSON.stringify({ message: userInput, session_id: sessionId })
     })
         .then(response => response.json())
         .then(data => {
+            // Check if this was a new session and we need to reload to show it in sidebar
+            if (!sessionId && data.session_id) {
+                window.location.href = "/?session_id=" + data.session_id;
+                return;
+            }
             // Create bot message element
             var botMessageDiv = document.createElement("div");
             botMessageDiv.className = "bot-message message";
@@ -162,3 +173,9 @@ soundBtn.addEventListener("click", () => {
         synth.cancel(); // Stop speaking if muted
     }
 });
+
+// Scroll to bottom on load
+window.onload = function () {
+    var chatBox = document.getElementById("chat-box");
+    chatBox.scrollTop = chatBox.scrollHeight;
+};

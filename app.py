@@ -25,6 +25,27 @@ def init_db():
                 password TEXT NOT NULL
             )
         ''')
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS sessions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                title TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            )
+        ''')
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS messages (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                session_id INTEGER,
+                sender TEXT NOT NULL,
+                message TEXT NOT NULL,
+                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id),
+                FOREIGN KEY (session_id) REFERENCES sessions(id)
+            )
+        ''')
         conn.commit()
 
 init_db()
@@ -74,7 +95,37 @@ def get_response(user_input):
 def index():
     if "user_id" not in session:
         return redirect(url_for("login"))
-    return render_template("index.html", user_name=session.get("user_name"))
+    
+    user_id = session["user_id"]
+    current_session_id = request.args.get("session_id")
+    sessions_list = []
+    messages = []
+
+    try:
+        with sqlite3.connect(DATABASE) as conn:
+            cursor = conn.cursor()
+            
+            # Fetch all sessions for the user
+            cursor.execute("SELECT id, title FROM sessions WHERE user_id = ? ORDER BY created_at DESC", (user_id,))
+            sessions_list = cursor.fetchall()
+
+            # If a session ID is provided, fetch its messages
+            if current_session_id:
+                cursor.execute("SELECT sender, message FROM messages WHERE session_id = ? ORDER BY timestamp ASC", (current_session_id,))
+                messages = cursor.fetchall()
+            elif sessions_list:
+             # Optional: Redirect to the most recent session if none selected, or stay on new chat
+             # For now, let's start a new chat by default if no session specified
+             pass
+
+    except Exception as e:
+        print(f"Error fetching data: {e}")
+
+    return render_template("index.html", user_name=session.get("user_name"), messages=messages, sessions=sessions_list, current_session_id=current_session_id)
+
+@app.route("/new_chat")
+def new_chat():
+    return redirect(url_for("index"))
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
@@ -136,9 +187,32 @@ def chat():
     
     data = request.get_json()
     user_message = data.get("message", "")
+    session_id = data.get("session_id")
+    user_id = session["user_id"]
+
     bot_reply = get_response(user_message)
 
-    return jsonify({"reply": bot_reply})
+    try:
+        with sqlite3.connect(DATABASE) as conn:
+            cursor = conn.cursor()
+            
+            # Create new session if none exists
+            if not session_id:
+                # Use first few words as title
+                title = " ".join(user_message.split()[:5]) + "..."
+                cursor.execute("INSERT INTO sessions (user_id, title) VALUES (?, ?)", (user_id, title))
+                session_id = cursor.lastrowid
+            
+            cursor.execute("INSERT INTO messages (user_id, session_id, sender, message) VALUES (?, ?, ?, ?)", 
+                           (user_id, session_id, "user", user_message))
+            cursor.execute("INSERT INTO messages (user_id, session_id, sender, message) VALUES (?, ?, ?, ?)", 
+                           (user_id, session_id, "bot", bot_reply))
+            conn.commit()
+    except Exception as e:
+        print(f"Error saving message: {e}")
+        return jsonify({"error": str(e)}), 500
+
+    return jsonify({"reply": bot_reply, "session_id": session_id})
 
 if __name__ == "__main__":
     app.run(debug=True)

@@ -252,6 +252,46 @@ body {
     text-overflow: ellipsis;
 }
 
+.session-wrapper {
+    display: flex;
+    align-items: center;
+    position: relative;
+    margin-bottom: 5px;
+}
+
+.session-wrapper .session-item {
+    flex: 1;
+    margin-bottom: 0;
+    padding-right: 40px;
+    /* Make space for delete button */
+}
+
+.delete-session-btn {
+    position: absolute;
+    right: 10px;
+    background: none;
+    border: none;
+    color: var(--light-text);
+    cursor: pointer;
+    opacity: 0;
+    transition: all 0.2s;
+    padding: 5px;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+}
+
+.session-wrapper:hover .delete-session-btn {
+    opacity: 1;
+}
+
+.delete-session-btn:hover {
+    color: var(--error-color);
+    background-color: rgba(220, 53, 69, 0.1);
+}
+
 .logout-section {
     margin-top: auto;
 }

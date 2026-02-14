@@ -217,5 +217,30 @@ def chat():
 
     return jsonify({"reply": bot_reply, "session_id": session_id})
 
+@app.route("/delete_session/<int:session_id>", methods=["POST"])
+def delete_session(session_id):
+    if "user_id" not in session:
+        return jsonify({"error": "Please log in"}), 401
+    
+    user_id = session["user_id"]
+    
+    try:
+        with sqlite3.connect(DATABASE) as conn:
+            cursor = conn.cursor()
+            # Ensure the session belongs to the user
+            cursor.execute("SELECT id FROM sessions WHERE id = ? AND user_id = ?", (session_id, user_id))
+            if not cursor.fetchone():
+                return jsonify({"error": "Session not found or unauthorized"}), 404
+            
+            # Delete messages first due to foreign key constraints (though sqlite might handle it if configured with CASCADE)
+            cursor.execute("DELETE FROM messages WHERE session_id = ?", (session_id,))
+            cursor.execute("DELETE FROM sessions WHERE id = ?", (session_id,))
+            conn.commit()
+            
+        return jsonify({"success": True})
+    except Exception as e:
+        print(f"Error deleting session: {e}")
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == "__main__":
     app.run(debug=True)

@@ -297,3 +297,34 @@ window.onclick = function (event) {
         closeModal();
     }
 }
+// function to delete session
+function deleteSession(event, sessionId) {
+    // Prevent the parent link click (which would switch to that session)
+    event.stopPropagation();
+    event.preventDefault();
+
+    if (confirm("Are you sure you want to delete this chat session? This action cannot be undone.")) {
+        fetch("/delete_session/" + sessionId, {
+            method: "POST"
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // If the deleted session was the current one, go to new chat
+                    const currentSessionId = document.getElementById("current-session-id").value;
+                    if (currentSessionId === sessionId) {
+                        window.location.href = "/new_chat";
+                    } else {
+                        // Otherwise just reload to update sidebar
+                        window.location.reload();
+                    }
+                } else {
+                    alert("Error: " + (data.error || "Could not delete session"));
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                alert("Failed to connect to server.");
+            });
+    }
+}

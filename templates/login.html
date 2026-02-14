@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
+
 <body>
     <div class="auth-container">
         <div class="auth-box">
@@ -15,15 +17,15 @@
             </div>
             <h2>Welcome Back</h2>
             <p>Please login to your account</p>
-            
+
             {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    <div class="flash-messages">
-                        {% for category, message in messages %}
-                            <div class="flash-message {{ category }}">{{ message }}</div>
-                        {% endfor %}
-                    </div>
-                {% endif %}
+            {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                <div class="flash-message {{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
             {% endwith %}
 
             <form action="{{ url_for('login') }}" method="POST">
@@ -37,8 +39,18 @@
                 </div>
                 <button type="submit" class="auth-btn">Login</button>
             </form>
+
+            <div class="separator">or</div>
+
+            <a href="{{ url_for('google_login') }}" class="google-btn">
+                <img src="https://www.gstatic.com/images/branding/product/1x/gmail_512dp.png" alt="Google Icon"
+                    style="width: 18px; height: 18px; margin-right: 10px;">
+                Continue with Google
+            </a>
+
             <p class="auth-footer">Don't have an account? <a href="{{ url_for('signup') }}">Sign Up</a></p>
         </div>
     </div>
 </body>
+
 </html>

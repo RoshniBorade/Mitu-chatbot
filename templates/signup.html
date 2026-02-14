@@ -48,6 +48,15 @@
                 </div>
                 <button type="submit" class="auth-btn">Sign Up</button>
             </form>
+
+            <div class="separator">or</div>
+
+            <a href="{{ url_for('google_login') }}" class="google-btn">
+                <img src="https://www.gstatic.com/images/branding/product/1x/gmail_512dp.png" alt="Google Icon"
+                    style="width: 18px; height: 18px; margin-right: 10px;">
+                Continue with Google
+            </a>
+
             <p class="auth-footer">Already have an account? <a href="{{ url_for('login') }}">Login</a></p>
         </div>
     </div>

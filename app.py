@@ -1,15 +1,38 @@
 from flask import Flask, request, jsonify, render_template, redirect, url_for, session, flash
 from flask_cors import CORS
+from authlib.integrations.flask_client import OAuth
+from dotenv import load_dotenv
 import json
+
+# Load environment variables from .env file
+load_dotenv()
 import os
 import random
 import re
 import sqlite3
+import requests
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 app.secret_key = "supersecretkey"  # Change this to a random secret key for production
 CORS(app)
+
+# ---------- Google OAuth Configuration ----------
+# USER: PLEASE REPLACE THESE WITH YOUR REAL GOOGLE CLIENT ID AND SECRET
+# Get them from: https://console.cloud.google.com/
+app.config['GOOGLE_CLIENT_ID'] = os.environ.get('GOOGLE_CLIENT_ID', 'REPLACE_WITH_YOUR_CLIENT_ID')
+app.config['GOOGLE_CLIENT_SECRET'] = os.environ.get('GOOGLE_CLIENT_SECRET', 'REPLACE_WITH_YOUR_CLIENT_SECRET')
+
+oauth = OAuth(app)
+google = oauth.register(
+    name='google',
+    client_id=app.config['GOOGLE_CLIENT_ID'],
+    client_secret=app.config['GOOGLE_CLIENT_SECRET'],
+    server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
+    client_kwargs={
+        'scope': 'openid email profile'
+    }
+)
 
 # ---------- Database Setup ----------
 DATABASE = 'database.db'
@@ -216,6 +239,45 @@ def chat():
         return jsonify({"error": str(e)}), 500
 
     return jsonify({"reply": bot_reply, "session_id": session_id})
+
+@app.route("/google-login")
+def google_login():
+    redirect_uri = url_for('google_authorize', _external=True)
+    return google.authorize_redirect(redirect_uri)
+
+@app.route("/google-callback")
+def google_authorize():
+    try:
+        token = google.authorize_access_token()
+        user_info = google.parse_id_token(token, nonce=None)
+        
+        email = user_info['email']
+        name = user_info.get('name', email.split('@')[0])
+        
+        with sqlite3.connect(DATABASE) as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM users WHERE email = ?", (email,))
+            user = cursor.fetchone()
+            
+            if not user:
+                # Create a new user for Google login
+                # We use a random password since they will login via Google
+                random_password = os.urandom(16).hex()
+                hashed_password = generate_password_hash(random_password)
+                cursor.execute("INSERT INTO users (name, email, password) VALUES (?, ?, ?)", 
+                               (name, email, hashed_password))
+                conn.commit()
+                cursor.execute("SELECT * FROM users WHERE email = ?", (email,))
+                user = cursor.fetchone()
+            
+            session["user_id"] = user[0]
+            session["user_name"] = user[1]
+            
+        return redirect(url_for("index"))
+    except Exception as e:
+        print(f"Google Login Error: {e}")
+        flash("Failed to login with Google.", "error")
+        return redirect(url_for("login"))
 
 @app.route("/delete_session/<int:session_id>", methods=["POST"])
 def delete_session(session_id):

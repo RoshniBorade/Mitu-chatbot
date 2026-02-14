@@ -4,3 +4,7 @@ tensorflow
 keras
 flask
 flask_cors
+authlib
+requests
+python-docx
+python-dotenv

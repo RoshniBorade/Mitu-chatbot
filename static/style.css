@@ -131,6 +131,59 @@ body {
     color: #155724;
 }
 
+/* Google Sign-In Button */
+.google-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 10px;
+    margin-top: 15px;
+    background-color: white;
+    color: #757575;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.3s, box-shadow 0.3s;
+    text-decoration: none;
+}
+
+.google-btn:hover {
+    background-color: #f7f7f7;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.google-btn img {
+    width: 20px;
+    margin-right: 12px;
+}
+
+.separator {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 20px 0;
+    color: var(--light-text);
+    font-size: 14px;
+}
+
+.separator::before,
+.separator::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.separator:not(:empty)::before {
+    margin-right: 10px;
+}
+
+.separator:not(:empty)::after {
+    margin-left: 10px;
+}
+
 /* Chat UI Styles */
 .chat-container {
     display: flex;

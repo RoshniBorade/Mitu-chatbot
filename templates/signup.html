@@ -4,62 +4,316 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up - Chatbot</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <title>Sign Up - MITU Skillologies</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --bg: #f8fafc;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --error: #ef4444;
+            --success: #10b981;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: var(--bg);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            display: flex;
+            width: 1000px;
+            min-height: 700px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .left-panel {
+            flex: 1;
+            background: linear-gradient(135deg, #2563eb 0%, #1e3a8a 100%);
+            padding: 40px;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+        }
+
+        .left-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('https://www.transparenttextures.com/patterns/cubes.png');
+            opacity: 0.1;
+        }
+
+        .branding h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .branding p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+
+        .right-panel {
+            flex: 1.2;
+            padding: 50px;
+            overflow-y: auto;
+        }
+
+        .form-header {
+            margin-bottom: 25px;
+        }
+
+        .form-header h2 {
+            font-size: 1.8rem;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .input-group i {
+            position: absolute;
+            left: 15px;
+            top: 13px;
+            color: var(--text-light);
+            transition: color 0.3s;
+        }
+
+        .input-group input,
+        .input-group select {
+            width: 100%;
+            padding: 12px 15px 12px 45px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            outline: none;
+            transition: all 0.3s;
+            font-size: 1rem;
+            background: white;
+        }
+
+        .input-group input:focus,
+        .input-group select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+        }
+
+        .password-requirements {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f1f5f9;
+            border-radius: 10px;
+            font-size: 0.85rem;
+        }
+
+        .requirement {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 5px;
+            color: var(--text-light);
+        }
+
+        .requirement.valid {
+            color: var(--success);
+        }
+
+        .requirement i {
+            font-size: 0.75rem;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-bottom: 15px;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .login-link {
+            text-align: center;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .login-link a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .flash-messages {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .flash {
+            padding: 15px 25px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .flash.error {
+            background: #ef4444;
+        }
+
+        .flash.success {
+            background: #10b981;
+        }
+
+        @media (max-width: 900px) {
+            .container {
+                width: 95%;
+                flex-direction: column;
+            }
+
+            .left-panel {
+                padding: 30px;
+            }
+
+            .right-panel {
+                padding: 30px;
+            }
+        }
+    </style>
 </head>
 
 <body>
-    <div class="auth-container">
-        <div class="auth-box">
-            <div class="logo-container">
-                <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="auth-logo">
-            </div>
-            <h2>Create Account</h2>
-            <p>Join us to get started</p>
+    <div class="flash-messages">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+    </div>
 
-            {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-            <div class="flash-messages">
-                {% for category, message in messages %}
-                <div class="flash-message {{ category }}">{{ message }}</div>
-                {% endfor %}
+    <div class="container">
+        <div class="left-panel">
+            <div class="branding">
+                <h1>Join MITU</h1>
+                <p>Start your journey with us and get expert guidance from our AI counselors and industry professionals.
+                </p>
             </div>
-            {% endif %}
-            {% endwith %}
+        </div>
+        <div class="right-panel">
+            <div class="form-header">
+                <h2>Create Account</h2>
+                <p>Register to start exploring</p>
+            </div>
+            <form action="{{ url_for('signup') }}" method="POST" id="signupForm">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-            <form action="{{ url_for('signup') }}" method="POST">
                 <div class="input-group">
-                    <label for="name">Full Name</label>
-                    <input type="text" id="name" name="name" required placeholder="Enter your full name">
+                    <i class="fa-solid fa-user"></i>
+                    <input type="text" name="name" placeholder="Full Name" required>
                 </div>
+
                 <div class="input-group">
-                    <label for="email">Email Address</label>
-                    <input type="email" id="email" name="email" required placeholder="Enter your email">
+                    <i class="fa-solid fa-envelope"></i>
+                    <input type="email" name="email" placeholder="Email Address" required>
                 </div>
+
                 <div class="input-group">
-                    <label for="password">Password</label>
-                    <input type="password" id="password" name="password" required placeholder="Create a password">
+                    <i class="fa-solid fa-user-tag"></i>
+                    <select name="role" required>
+                        <option value="" disabled selected>Select Your Role</option>
+                        <option value="Student">Student</option>
+                        <option value="Admin">Admin</option>
+                        <option value="Counselor">Counselor</option>
+                    </select>
                 </div>
+
                 <div class="input-group">
-                    <label for="confirm_password">Confirm Password</label>
-                    <input type="password" id="confirm_password" name="confirm_password" required
-                        placeholder="Confirm your password">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" name="password" id="password" placeholder="Password" required>
                 </div>
-                <button type="submit" class="auth-btn">Sign Up</button>
+
+                <div class="password-requirements">
+                    <div class="requirement" id="length"><i class="fa-solid fa-circle"></i> Min. 8 characters</div>
+                    <div class="requirement" id="upper"><i class="fa-solid fa-circle"></i> At least 1 uppercase</div>
+                    <div class="requirement" id="number"><i class="fa-solid fa-circle"></i> At least 1 number</div>
+                    <div class="requirement" id="special"><i class="fa-solid fa-circle"></i> At least 1 special char
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <i class="fa-solid fa-circle-check"></i>
+                    <input type="password" name="confirm_password" placeholder="Confirm Password" required>
+                </div>
+
+                <button type="submit" class="btn-primary">Sign Up</button>
+
+                <p class="login-link">Already have an account? <a href="{{ url_for('login') }}">Login</a></p>
             </form>
-
-            <div class="separator">or</div>
-
-            <a href="{{ url_for('google_login') }}" class="google-btn">
-                <img src="https://www.gstatic.com/images/branding/product/1x/gmail_512dp.png" alt="Google Icon"
-                    style="width: 18px; height: 18px; margin-right: 10px;">
-                Continue with Google
-            </a>
-
-            <p class="auth-footer">Already have an account? <a href="{{ url_for('login') }}">Login</a></p>
         </div>
     </div>
+
+    <script>
+        const password = document.getElementById('password');
+        const requirements = {
+            length: str => str.length >= 8,
+            upper: str => /[A-Z]/.test(str),
+            number: str => /[0-9]/.test(str),
+            special: str => /[!@#$%^&*(),.?":{}|<>]/.test(str)
+        };
+
+        password.addEventListener('input', () => {
+            const val = password.value;
+            for (const key in requirements) {
+                const element = document.getElementById(key);
+                if (requirements[key](val)) {
+                    element.classList.add('valid');
+                    element.querySelector('i').classList.replace('fa-circle', 'fa-check-circle');
+                } else {
+                    element.classList.remove('valid');
+                    element.querySelector('i').classList.replace('fa-check-circle', 'fa-circle');
+                }
+            }
+        });
+    </script>
 </body>
 
 </html>

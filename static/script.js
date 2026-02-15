@@ -25,11 +25,14 @@ function sendMessage() {
     // Scroll to bottom
     chatBox.scrollTop = chatBox.scrollHeight;
 
+    const csrfToken = document.getElementById("csrf_token").value;
+
     // Send request to Flask backend
     fetch("/chat", {
         method: "POST",
         headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrfToken
         },
         body: JSON.stringify({ message: userInput, session_id: sessionId })
     })
@@ -304,8 +307,12 @@ function deleteSession(event, sessionId) {
     event.preventDefault();
 
     if (confirm("Are you sure you want to delete this chat session? This action cannot be undone.")) {
+        const csrfToken = document.getElementById("csrf_token").value;
         fetch("/delete_session/" + sessionId, {
-            method: "POST"
+            method: "POST",
+            headers: {
+                "X-CSRFToken": csrfToken
+            }
         })
             .then(response => response.json())
             .then(data => {

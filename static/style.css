@@ -84,6 +84,13 @@ body {
     outline: none;
 }
 
+.hint {
+    display: block;
+    font-size: 12px;
+    color: var(--light-text);
+    margin-top: 5px;
+}
+
 .auth-btn {
     width: 100%;
     padding: 12px;

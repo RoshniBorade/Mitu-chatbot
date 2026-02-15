@@ -8,3 +8,8 @@ authlib
 requests
 python-docx
 python-dotenv
+flask-mail
+bcrypt
+flask-wtf
+pyjwt
+flask-talisman

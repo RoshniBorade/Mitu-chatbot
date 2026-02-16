@@ -148,6 +148,8 @@ def init_db():
             cursor.execute("ALTER TABLE users ADD COLUMN failed_attempts INTEGER DEFAULT 0")
         if 'lock_until' not in columns:
             cursor.execute("ALTER TABLE users ADD COLUMN lock_until DATETIME")
+        if 'created_at' not in columns:
+            cursor.execute("ALTER TABLE users ADD COLUMN created_at DATETIME DEFAULT CURRENT_TIMESTAMP")
 
         # Login Activity Table
         cursor.execute('''
@@ -463,6 +465,10 @@ def admin_dashboard():
         flash("Unauthorized access!", "error")
         return redirect(url_for("index"))
     
+    # Filters
+    course_filter = request.args.get('course', '')
+    status_filter = request.args.get('status', '')
+    
     with sqlite3.connect(DATABASE) as conn:
         cursor = conn.cursor()
         
@@ -479,11 +485,61 @@ def admin_dashboard():
         cursor.execute("SELECT id, name, email, role, is_verified, created_at FROM users ORDER BY created_at DESC")
         users = cursor.fetchall()
 
-        # Fetch all leads
-        cursor.execute("SELECT id, full_name, email, phone, course_name, status, created_at FROM leads ORDER BY created_at DESC")
+        # Build query for leads with filters
+        query = "SELECT id, full_name, email, phone, course_name, status, created_at FROM leads"
+        params = []
+        where_clauses = []
+        
+        if course_filter:
+            where_clauses.append("course_name = ?")
+            params.append(course_filter)
+        if status_filter:
+            where_clauses.append("status = ?")
+            params.append(status_filter)
+            
+        if where_clauses:
+            query += " WHERE " + " AND ".join(where_clauses)
+            
+        query += " ORDER BY created_at DESC"
+        
+        cursor.execute(query, params)
         leads = cursor.fetchall()
-    
-    return render_template("admin_dashboard.html", logs=logs, users=users, leads=leads)
+
+        # Analytics
+        total_users = len(users)
+        total_leads = len(leads)
+        
+        # Leads by Course
+        cursor.execute("SELECT course_name, COUNT(*) FROM leads GROUP BY course_name")
+        leads_by_course = cursor.fetchall()
+        
+        # Leads by Status
+        cursor.execute("SELECT status, COUNT(*) FROM leads GROUP BY status")
+        leads_by_status = cursor.fetchall()
+        
+        # Calculate specific counts for cards
+        pending_leads = 0
+        converted_leads = 0
+        for status, count in leads_by_status:
+            if status == 'Pending':
+                pending_leads = count
+            elif status == 'Converted':
+                converted_leads = count
+
+    return render_template("admin_dashboard.html", 
+                           logs=logs, 
+                           users=users, 
+                           leads=leads,
+                           total_users=total_users,
+                           total_leads=total_leads,
+                           leads_by_course=leads_by_course,
+                           leads_by_status=leads_by_status,
+                           pending_leads=pending_leads,
+                           converted_leads=converted_leads,
+                           course_filter=course_filter,
+                           status_filter=status_filter,
+                           all_courses=EnrollmentFlow.COURSES,
+                           all_statuses=['Pending', 'Contacted', 'Converted'])
 
 @app.route("/admin/verify_user/<int:user_id>")
 def admin_verify_user(user_id):

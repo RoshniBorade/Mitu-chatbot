@@ -2,7 +2,7 @@ import sqlite3
 import os
 
 DATABASE = 'database.db'
-EMAIL_TO_DELETE = 'roshniborade25021@gmail.com'
+EMAIL_TO_DELETE = 'roshh5432105@gmail.com'
 
 def delete_user_by_email(email):
     if not os.path.exists(DATABASE):
@@ -13,21 +13,39 @@ def delete_user_by_email(email):
         conn = sqlite3.connect(DATABASE)
         cursor = conn.cursor()
 
-        # Delete all data
-        cursor.execute("DELETE FROM messages")
-        print("Deleted all messages.")
+        # Find user ID
+        cursor.execute("SELECT id FROM users WHERE email = ?", (email,))
+        user_row = cursor.fetchone()
 
-        cursor.execute("DELETE FROM sessions")
-        print("Deleted all sessions.")
+        if not user_row:
+             print(f"User with email {email} not found.")
+             return
 
-        cursor.execute("DELETE FROM login_activity")
-        print("Deleted form login_activity.")
+        user_id = user_row[0]
+        print(f"Deleting user {email} (ID: {user_id})")
 
-        cursor.execute("DELETE FROM users")
-        print("Deleted all users.")
+        # Delete from messages
+        cursor.execute("DELETE FROM messages WHERE user_id = ?", (user_id,))
+        print("Deleted related messages.")
+
+        # Delete from sessions
+        cursor.execute("DELETE FROM sessions WHERE user_id = ?", (user_id,))
+        print("Deleted related sessions.")
+
+        # Delete from login_activity
+        cursor.execute("DELETE FROM login_activity WHERE user_id = ?", (user_id,))
+        print("Deleted related login activity.")
+
+        # Delete from leads (new table)
+        cursor.execute("DELETE FROM leads WHERE user_id = ?", (user_id,))
+        print("Deleted related leads.")
+
+        # Delete from users
+        cursor.execute("DELETE FROM users WHERE id = ?", (user_id,))
+        print("Deleted user record.")
 
         conn.commit()
-        print("\nSuccessfully deleted all users and related data.")
+        print("\nSuccessfully deleted user and related data.")
 
     except Exception as e:
         print(f"An error occurred: {e}")

@@ -505,10 +505,19 @@ def admin_dashboard():
         cursor.execute(query, params)
         leads = cursor.fetchall()
 
-        # Analytics
+        # Analytics (Global Totals)
         total_users = len(users)
-        total_leads = len(leads)
         
+        # Get absolute totals for cards regardless of filters
+        cursor.execute("SELECT COUNT(*) FROM leads")
+        total_leads_absolute = cursor.fetchone()[0]
+        
+        cursor.execute("SELECT COUNT(*) FROM leads WHERE status = 'Converted'")
+        converted_leads_absolute = cursor.fetchone()[0]
+        
+        cursor.execute("SELECT COUNT(*) FROM leads WHERE status = 'Pending'")
+        pending_leads_absolute = cursor.fetchone()[0]
+
         # Leads by Course
         cursor.execute("SELECT course_name, COUNT(*) FROM leads GROUP BY course_name")
         leads_by_course = cursor.fetchall()
@@ -516,26 +525,22 @@ def admin_dashboard():
         # Leads by Status
         cursor.execute("SELECT status, COUNT(*) FROM leads GROUP BY status")
         leads_by_status = cursor.fetchall()
-        
-        # Calculate specific counts for cards
-        pending_leads = 0
-        converted_leads = 0
-        for status, count in leads_by_status:
-            if status == 'Pending':
-                pending_leads = count
-            elif status == 'Converted':
-                converted_leads = count
+
+        # Calculate conversion rate
+        conversion_rate = (converted_leads_absolute / total_leads_absolute * 100) if total_leads_absolute > 0 else 0
+        conversion_rate = round(conversion_rate, 1)
 
     return render_template("admin_dashboard.html", 
                            logs=logs, 
                            users=users, 
                            leads=leads,
                            total_users=total_users,
-                           total_leads=total_leads,
+                           total_leads=total_leads_absolute,
                            leads_by_course=leads_by_course,
                            leads_by_status=leads_by_status,
-                           pending_leads=pending_leads,
-                           converted_leads=converted_leads,
+                           pending_leads=pending_leads_absolute,
+                           converted_leads=converted_leads_absolute,
+                           conversion_rate=conversion_rate,
                            course_filter=course_filter,
                            status_filter=status_filter,
                            all_courses=EnrollmentFlow.COURSES,

@@ -770,3 +770,36 @@ body {
 .enroll-btn:hover {
     background-color: var(--secondary-color);
 }
+
+/* Quick Replies */
+.quick-replies {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.quick-reply-btn {
+    background-color: transparent;
+    border: 1px solid var(--primary-color);
+    color: var(--primary-color);
+    padding: 8px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.quick-reply-btn:hover {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+/* Progress Text */
+.progress-text {
+    font-size: 0.8rem;
+    color: var(--light-text);
+    margin-bottom: 5px;
+    text-align: right;
+    font-style: italic;
+}

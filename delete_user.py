@@ -13,35 +13,21 @@ def delete_user_by_email(email):
         conn = sqlite3.connect(DATABASE)
         cursor = conn.cursor()
 
-        # Find user ID
-        cursor.execute("SELECT id FROM users WHERE email = ?", (email,))
-        user = cursor.fetchone()
+        # Delete all data
+        cursor.execute("DELETE FROM messages")
+        print("Deleted all messages.")
 
-        if not user:
-            print(f"User with email {email} not found.")
-            return
+        cursor.execute("DELETE FROM sessions")
+        print("Deleted all sessions.")
 
-        user_id = user[0]
-        print(f"Found user ID: {user_id} for email: {email}")
+        cursor.execute("DELETE FROM login_activity")
+        print("Deleted form login_activity.")
 
-        # Delete from messages
-        cursor.execute("DELETE FROM messages WHERE user_id = ?", (user_id,))
-        print("Deleted related messages.")
-
-        # Delete from sessions
-        cursor.execute("DELETE FROM sessions WHERE user_id = ?", (user_id,))
-        print("Deleted related sessions.")
-
-        # Delete from login_activity
-        cursor.execute("DELETE FROM login_activity WHERE user_id = ?", (user_id,))
-        print("Deleted related login activity.")
-
-        # Delete from users
-        cursor.execute("DELETE FROM users WHERE id = ?", (user_id,))
-        print(f"Deleted user {email} from users table.")
+        cursor.execute("DELETE FROM users")
+        print("Deleted all users.")
 
         conn.commit()
-        print("\nSuccessfully deleted user and all related data.")
+        print("\nSuccessfully deleted all users and related data.")
 
     except Exception as e:
         print(f"An error occurred: {e}")

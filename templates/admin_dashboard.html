@@ -112,6 +112,62 @@
     </div>
     <div class="main-content">
         <div class="header">
+            <h1>Lead Management</h1>
+        </div>
+
+        <div class="card" style="margin-bottom: 50px;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Contact</th>
+                        <th>Course</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if leads %}
+                    {% for lead in leads %}
+                    <tr>
+                        <td>#{{ lead[0] }}</td>
+                        <td>{{ lead[1] }}</td>
+                        <td>
+                            <div>{{ lead[2] }}</div>
+                            <small>{{ lead[3] }}</small>
+                        </td>
+                        <td>{{ lead[4] }}</td>
+                        <td>
+                            <span
+                                class="status {% if lead[5] == 'Contacted' or lead[5] == 'Converted' %}success{% else %}failed{% endif %}">
+                                {{ lead[5] }}
+                            </span>
+                        </td>
+                        <td>{{ lead[6] }}</td>
+                        <td>
+                            {% if lead[5] != 'Contacted' and lead[5] != 'Converted' %}
+                            <a href="{{ url_for('update_lead_status', lead_id=lead[0], status='Contacted') }}"
+                                style="color: #2563eb; text-decoration: none; margin-right: 10px;">Contacted</a>
+                            {% endif %}
+                            {% if lead[5] != 'Converted' %}
+                            <a href="{{ url_for('update_lead_status', lead_id=lead[0], status='Converted') }}"
+                                style="color: #16a34a; text-decoration: none;">Converted</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% else %}
+                    <tr>
+                        <td colspan="7" style="text-align: center; color: #666;">No leads found yet.</td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="header">
             <h1>Login Activity History</h1>
         </div>
 

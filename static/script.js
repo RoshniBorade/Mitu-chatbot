@@ -46,10 +46,35 @@ function sendMessage() {
             // Create bot message element
             var botMessageDiv = document.createElement("div");
             botMessageDiv.className = "bot-message message";
-            botMessageDiv.innerHTML = `
+
+            let messageContent = `
             <div class="avatar"><img src="/static/logo.png" alt="Bot"></div>
-            <div class="content">${data.reply}</div>
-        `;
+            <div class="content">
+            `;
+
+            if (data.progress) {
+                messageContent += `<div class="progress-text">${data.progress}</div>`;
+                // Auto-open courses if indicated
+                if (data.progress === "Opening Courses...") {
+                    setTimeout(showCourses, 1000);
+                }
+            }
+
+            messageContent += `${data.reply}`;
+
+            if (data.buttons && data.buttons.length > 0) {
+                messageContent += `<div class="quick-replies">`;
+                data.buttons.forEach(btn => {
+                    // Escape single quotes in payload
+                    const safePayload = btn.payload.replace("'", "\\'");
+                    messageContent += `<button class="quick-reply-btn" onclick="sendQuickReply('${safePayload}')">${btn.label}</button>`;
+                });
+                messageContent += `</div>`;
+            }
+
+            messageContent += `</div>`; // Close content div
+
+            botMessageDiv.innerHTML = messageContent;
             chatBox.appendChild(botMessageDiv);
 
             // Scroll to bottom
@@ -57,12 +82,23 @@ function sendMessage() {
 
             // Speak response if sound is on
             if (isSoundOn) {
-                speakText(data.reply);
+                // Strip HTML for speech
+                var tempDiv = document.createElement("div");
+                tempDiv.innerHTML = data.reply;
+                speakText(tempDiv.textContent || tempDiv.innerText || "");
             }
         })
         .catch(error => {
             console.error("Error:", error);
         });
+}
+
+function sendQuickReply(payload) {
+    const input = document.getElementById("user-input");
+    input.value = payload;
+
+    // Simulate enter press or direct call
+    sendMessage();
 }
 
 // Allow sending message with Enter key

@@ -128,6 +128,19 @@
       "responses": [
         "MITU Skillologies is a professional training institute focused on Data Science, AI, and Open Source technologies, empowering individuals through hands-on learning."
       ]
+    },
+    {
+      "tag": "courses",
+      "keywords": [
+        "courses",
+        "explore courses",
+        "browse courses",
+        "show courses",
+        "classes"
+      ],
+      "responses": [
+        "You can explore our courses in the courses section. Just click the button below or the 'Courses' link in the sidebar!"
+      ]
     }
   ]
 }

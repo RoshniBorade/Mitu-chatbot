@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify, render_template, redirect, url_for, session, flash
+from enrollment import EnrollmentFlow
 from flask_cors import CORS
 from authlib.integrations.flask_client import OAuth
 from dotenv import load_dotenv
@@ -23,12 +24,15 @@ import jwt
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'MITU_SECRET_KEY_2024')
 app.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(days=7)
+# Allow HTTP for OAuth (Development only)
+os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
 # Security Headers
 # Talisman(app, content_security_policy=None) # Disable CSP for now to allow external fonts/styles if needed, or configure it
 
 # CSRF Protection
 csrf = CSRFProtect(app)
+app.config['WTF_CSRF_TIME_LIMIT'] = None # Token valid for session lifetime
 
 # Mail Configuration (Example using Gmail)
 app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
@@ -178,6 +182,20 @@ def init_db():
                 FOREIGN KEY (session_id) REFERENCES sessions(id)
             )
         ''')
+
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS leads (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER,
+                full_name TEXT,
+                email TEXT,
+                phone TEXT,
+                course_name TEXT,
+                status TEXT DEFAULT 'Pending',
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            )
+        ''')
         conn.commit()
 
 init_db()
@@ -266,7 +284,7 @@ def new_chat():
 def signup():
     if request.method == "POST":
         name = request.form["name"]
-        email = request.form["email"]
+        email = request.form["email"].lower()
         password = request.form["password"]
         confirm_password = request.form["confirm_password"]
         role = request.form.get("role", "Student")
@@ -296,18 +314,18 @@ def signup():
             with sqlite3.connect(DATABASE) as conn:
                 cursor = conn.cursor()
                 cursor.execute("""
-                    INSERT INTO users (name, email, password, role, verification_token) 
-                    VALUES (?, ?, ?, ?, ?)
+                    INSERT INTO users (name, email, password, role, verification_token, is_verified) 
+                    VALUES (?, ?, ?, ?, ?, 1)
                 """, (name, email, hashed_pw, role, token))
                 conn.commit()
             
-            # Send verification email
-            base_url = os.environ.get('BASE_URL', 'http://127.0.0.1:5000')
-            verify_url = f"{base_url}/verify_email/{token}"
-            html = render_template('emails/verify_email.html', name=name, verify_url=verify_url)
-            send_email("Verify your MITU account", email, html)
+            # Send welcome email (Optional, or removed as per request) - Verification skipped
+            # base_url = os.environ.get('BASE_URL', 'http://127.0.0.1:5000')
+            # verify_url = f"{base_url}/verify_email/{token}"
+            # html = render_template('emails/verify_email.html', name=name, verify_url=verify_url)
+            # send_email("Welcome to MITU Skillologies", email, html)
 
-            flash("Account created! Please check your email to verify your account.", "success")
+            flash("Account created! Please login.", "success")
             return redirect(url_for("login"))
         except sqlite3.IntegrityError:
             flash("Email already exists!", "error")
@@ -333,13 +351,13 @@ def verify_email(token):
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        email = request.form["email"]
+        email = request.form["email"].lower()
         password = request.form["password"]
         remember = request.form.get("remember") == "on"
 
         with sqlite3.connect(DATABASE) as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT id, name, email, password, role, is_verified, failed_attempts, lock_until FROM users WHERE email = ?", (email,))
+            cursor.execute("SELECT id, name, email, password, role, is_verified, failed_attempts, lock_until FROM users WHERE LOWER(email) = ?", (email.lower(),))
             user = cursor.fetchone()
 
             if not user:
@@ -348,19 +366,14 @@ def login():
 
             user_id, name, email_val, hashed_pw, role, is_verified, failed_attempts, lock_until = user
 
-            # Check for lock
-            if lock_until:
-                lock_time = datetime.datetime.strptime(lock_until, '%Y-%m-%d %H:%M:%S')
-                if datetime.datetime.now() < lock_time:
-                    flash(f"Account locked. Try again after {lock_until}", "error")
-                    return redirect(url_for("login"))
+            # Account locking removed as per request
+            # if lock_until: ...
 
             if user and check_password(hashed_pw, password):
-                if not is_verified:
-                    flash("Please verify your email first.", "error")
-                    return redirect(url_for("login"))
+                # Email verification check removed as per request
+                # if not is_verified: ...
 
-                # Reset failed attempts
+                # Reset failed attempts logic removed/simplified
                 cursor.execute("UPDATE users SET failed_attempts = 0, lock_until = NULL WHERE id = ?", (user_id,))
                 
                 # Log success
@@ -378,21 +391,14 @@ def login():
                 if role == "Admin":
                     return redirect(url_for("admin_dashboard"))
                 elif role == "Counselor":
-                    return redirect(url_for("index")) # Or a counselor specific view
+                    return redirect(url_for("index")) 
                 else:
                     return redirect(url_for("index"))
             else:
-                # Handle failed attempt
-                new_failed = failed_attempts + 1
-                lock_until_val = None
-                if new_failed >= 3:
-                    lock_until_val = (datetime.datetime.now() + datetime.timedelta(minutes=30)).strftime('%Y-%m-%d %H:%M:%S')
-                    flash("Too many failed attempts. Account locked for 30 minutes.", "error")
-                else:
-                    flash("Invalid email or password!", "error")
+                # Handle failed attempt - No locking logic
+                flash("Invalid email or password!", "error")
 
-                cursor.execute("UPDATE users SET failed_attempts = ?, lock_until = ? WHERE id = ?", 
-                               (new_failed, lock_until_val, user_id))
+                # Just log the failure, don't lock
                 cursor.execute("INSERT INTO login_activity (user_id, ip_address, status) VALUES (?, ?, ?)", 
                                (user_id, request.remote_addr, "Failed"))
                 conn.commit()
@@ -403,14 +409,14 @@ def login():
 @app.route("/forgot_password", methods=["GET", "POST"])
 def forgot_password():
     if request.method == "POST":
-        email = request.form["email"]
+        email = request.form["email"].lower()
         token = create_reset_token(email)
         expiry = (datetime.datetime.now() + datetime.timedelta(minutes=15)).strftime('%Y-%m-%d %H:%M:%S')
 
         with sqlite3.connect(DATABASE) as conn:
             cursor = conn.cursor()
-            cursor.execute("UPDATE users SET reset_token = ?, reset_token_expiry = ? WHERE email = ?", 
-                           (token, expiry, email))
+            cursor.execute("UPDATE users SET reset_token = ?, reset_token_expiry = ? WHERE LOWER(email) = ?", 
+                           (token, expiry, email.lower()))
             conn.commit()
 
         base_url = os.environ.get('BASE_URL', 'http://127.0.0.1:5000')
@@ -442,8 +448,8 @@ def reset_password(token):
 
         with sqlite3.connect(DATABASE) as conn:
             cursor = conn.cursor()
-            cursor.execute("UPDATE users SET password = ?, reset_token = NULL, reset_token_expiry = NULL WHERE email = ?", 
-                           (hashed_pw, email))
+            cursor.execute("UPDATE users SET password = ?, reset_token = NULL, reset_token_expiry = NULL, is_verified = 1 WHERE LOWER(email) = ?", 
+                           (hashed_pw, email.lower()))
             conn.commit()
 
         flash("Password updated successfully! Please login.", "success")
@@ -472,8 +478,12 @@ def admin_dashboard():
         # Fetch all registered users
         cursor.execute("SELECT id, name, email, role, is_verified, created_at FROM users ORDER BY created_at DESC")
         users = cursor.fetchall()
+
+        # Fetch all leads
+        cursor.execute("SELECT id, full_name, email, phone, course_name, status, created_at FROM leads ORDER BY created_at DESC")
+        leads = cursor.fetchall()
     
-    return render_template("admin_dashboard.html", logs=logs, users=users)
+    return render_template("admin_dashboard.html", logs=logs, users=users, leads=leads)
 
 @app.route("/admin/verify_user/<int:user_id>")
 def admin_verify_user(user_id):
@@ -487,6 +497,20 @@ def admin_verify_user(user_id):
         conn.commit()
     
     flash("User verified successfully!", "success")
+    return redirect(url_for("admin_dashboard"))
+
+@app.route("/admin/update_lead_status/<int:lead_id>/<status>")
+def update_lead_status(lead_id, status):
+    if "user_id" not in session or session.get("user_role") != "Admin":
+        flash("Unauthorized access!", "error")
+        return redirect(url_for("index"))
+    
+    with sqlite3.connect(DATABASE) as conn:
+        cursor = conn.cursor()
+        cursor.execute("UPDATE leads SET status = ? WHERE id = ?", (status, lead_id))
+        conn.commit()
+    
+    flash(f"Lead status updated to {status}", "success")
     return redirect(url_for("admin_dashboard"))
 
 @app.route("/logout")
@@ -504,7 +528,58 @@ def chat():
     session_id = data.get("session_id")
     user_id = session["user_id"]
 
-    bot_reply = get_response(user_message)
+    bot_reply = ""
+    buttons = []
+    progress = ""
+    
+    # Check for active enrollment flow
+    if session.get('flow') == 'enrollment':
+        response = EnrollmentFlow.handle_input(user_message)
+        bot_reply = response.get('reply')
+        buttons = response.get('buttons', [])
+        progress = response.get('progress', "")
+        
+        # Check if lead needs to be saved
+        if response.get('save_lead'):
+            lead_data = response.get('lead_data')
+            try:
+                with sqlite3.connect(DATABASE) as conn:
+                    cursor = conn.cursor()
+                    cursor.execute("""
+                        INSERT INTO leads (user_id, full_name, email, phone, course_name)
+                        VALUES (?, ?, ?, ?, ?)
+                    """, (user_id, lead_data['name'], lead_data['email'], lead_data['phone'], lead_data['course']))
+                    conn.commit()
+            except Exception as e:
+                print(f"Error saving lead: {e}")
+            
+            # Clear session
+            session.pop('flow', None)
+            session.pop('step', None)
+            session.pop('enroll_data', None)
+            
+    else:
+        # Check if user wants to enroll
+        # Check intent or keywords "enroll", "register", "join course"
+        user_text_lower = user_message.lower()
+        if any(w in user_text_lower for w in ['enroll', 'register', 'join course', 'book demo']):
+            response = EnrollmentFlow.start_flow()
+            bot_reply = response.get('reply')
+            progress = response.get('progress')
+        elif user_message.strip().lower() == 'courses' or any(w in user_text_lower for w in ['explore courses', 'show courses']):
+            # Special handling for courses
+            bot_reply = "You can explore our courses in the courses section. Just click the button below or the 'Courses' link in the sidebar!"
+            progress = "Opening Courses..."
+        else:
+            bot_reply = get_response(user_message)
+        
+        # Add quick replies for general chat (if not in a guided flow)
+        if not session.get('flow'):
+            buttons = [
+            {"label": "Enroll Now", "payload": "enroll"},
+            {"label": "Explore Courses", "payload": "courses"},
+            {"label": "Contact Us", "payload": "contact"}
+            ]
 
     try:
         with sqlite3.connect(DATABASE) as conn:
@@ -526,11 +601,18 @@ def chat():
         print(f"Error saving message: {e}")
         return jsonify({"error": str(e)}), 500
 
-    return jsonify({"reply": bot_reply, "session_id": session_id})
+    return jsonify({
+        "reply": bot_reply, 
+        "session_id": session_id, 
+        "buttons": buttons, 
+        "progress": progress
+    })
 
 @app.route("/google-login")
 def google_login():
-    redirect_uri = url_for('google_authorize', _external=True)
+    base_url = os.environ.get('BASE_URL', 'http://127.0.0.1:5000')
+    redirect_uri = f"{base_url}/google-callback"
+    print(f"DEBUG: Google Redirect URI: {redirect_uri}")
     return google.authorize_redirect(redirect_uri)
 
 @app.route("/google-callback")

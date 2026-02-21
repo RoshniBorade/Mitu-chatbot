@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile – MITU Chatbot</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <input type="hidden" id="csrf_token" value="{{ csrf_token() }}">
+</head>
+
+<body class="profile-body">
+
+    <!-- Top Navbar -->
+    <header class="profile-navbar">
+        <div class="profile-nav-brand">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="MITU Logo" class="nav-logo">
+            <span>MITU Chatbot</span>
+        </div>
+        <nav class="profile-nav-links">
+            <a href="{{ url_for('index') }}" class="pnav-link"><i class="fas fa-comment"></i> Chat</a>
+            <a href="{{ url_for('profile') }}" class="pnav-link active"><i class="fas fa-user"></i> Profile</a>
+            <a href="{{ url_for('logout') }}" class="pnav-link logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </nav>
+    </header>
+
+    <main class="profile-main">
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="prof-flash-container">
+            {% for category, message in messages %}
+            <div class="prof-flash {{ category }}">
+                <i
+                    class="fas {% if category == 'success' %}fa-check-circle{% else %}fa-exclamation-circle{% endif %}"></i>
+                {{ message }}
+                <button class="flash-close" onclick="this.parentElement.remove()">×</button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <div class="profile-grid">
+
+            <!-- ── LEFT COLUMN: Avatar + Quick Info ── -->
+            <div class="profile-left">
+
+                <!-- Avatar Card -->
+                <div class="profile-card avatar-card">
+                    <div class="avatar-wrapper" onclick="document.getElementById('avatar-input').click()"
+                        title="Click to change photo">
+                        {% if user[6] %}
+                        <img id="avatar-preview" src="{{ url_for('static', filename='avatars/' + user[6]) }}"
+                            alt="Profile Photo" class="profile-avatar">
+                        {% else %}
+                        <img id="avatar-preview"
+                            src="https://ui-avatars.com/api/?name={{ user[1] | urlencode }}&background=4a90e2&color=fff&size=160"
+                            alt="Profile Photo" class="profile-avatar">
+                        {% endif %}
+                        <div class="avatar-overlay">
+                            <i class="fas fa-camera"></i>
+                            <span>Change Photo</span>
+                        </div>
+                    </div>
+                    <h2 class="profile-display-name">{{ user[1] }}</h2>
+                    <span
+                        class="role-badge {% if user[3] == 'Admin' %}admin-badge{% elif user[3] == 'Counselor' %}counselor-badge{% else %}student-badge{% endif %}">
+                        <i
+                            class="fas {% if user[3] == 'Admin' %}fa-shield-alt{% elif user[3] == 'Counselor' %}fa-user-tie{% else %}fa-graduation-cap{% endif %}"></i>
+                        {{ user[3] }}
+                    </span>
+
+                    <!-- Hidden avatar form -->
+                    <form id="avatar-form" action="{{ url_for('upload_avatar') }}" method="POST"
+                        enctype="multipart/form-data" style="display:none;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="file" id="avatar-input" name="avatar" accept="image/*"
+                            onchange="previewAndUpload(this)">
+                    </form>
+
+                    <div class="profile-meta-info">
+                        <div class="meta-row">
+                            <i class="fas fa-envelope"></i>
+                            <span>{{ user[2] }}</span>
+                        </div>
+                        <div class="meta-row">
+                            <i
+                                class="fas {% if user[4] %}fa-check-circle verified{% else %}fa-times-circle unverified{% endif %}"></i>
+                            <span>{{ 'Verified' if user[4] else 'Not Verified' }}</span>
+                        </div>
+                        <div class="meta-row">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>Joined {{ user[5][:10] if user[5] else 'N/A' }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Stats -->
+                <div class="profile-card stats-card">
+                    <h3><i class="fas fa-chart-bar"></i> My Stats</h3>
+                    <div class="stats-grid">
+                        <div class="stat-box">
+                            <span class="stat-num">{{ enrollments | length }}</span>
+                            <span class="stat-label">Enrollments</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="stat-num">{{ enrollments | selectattr(4, 'equalto', 'Converted') | list |
+                                length }}</span>
+                            <span class="stat-label">Converted</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="stat-num">{{ enrollments | selectattr(4, 'equalto', 'Pending') | list | length
+                                }}</span>
+                            <span class="stat-label">Pending</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── RIGHT COLUMN: Forms + History ── -->
+            <div class="profile-right">
+
+                <!-- Edit Profile Info -->
+                <div class="profile-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-user-edit"></i> Edit Profile</h3>
+                    </div>
+                    <form action="{{ url_for('profile') }}" method="POST" class="profile-form">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="name"><i class="fas fa-user"></i> Full Name</label>
+                                <input type="text" id="name" name="name" value="{{ user[1] }}" required
+                                    placeholder="Your full name">
+                            </div>
+                            <div class="form-group">
+                                <label for="email"><i class="fas fa-envelope"></i> Email Address</label>
+                                <input type="email" id="email" name="email" value="{{ user[2] }}" required
+                                    placeholder="Your email">
+                            </div>
+                        </div>
+                        <button type="submit" class="prof-btn primary-btn">
+                            <i class="fas fa-save"></i> Save Changes
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Change Password -->
+                <div class="profile-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-lock"></i> Change Password</h3>
+                    </div>
+                    <form action="{{ url_for('change_password') }}" method="POST" class="profile-form"
+                        id="password-form">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="form-group">
+                            <label for="current_password"><i class="fas fa-key"></i> Current Password</label>
+                            <div class="password-input-wrap">
+                                <input type="password" id="current_password" name="current_password" required
+                                    placeholder="Enter current password">
+                                <button type="button" class="toggle-pw" onclick="togglePw('current_password')"><i
+                                        class="fas fa-eye"></i></button>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="new_password"><i class="fas fa-lock"></i> New Password</label>
+                                <div class="password-input-wrap">
+                                    <input type="password" id="new_password" name="new_password" required
+                                        placeholder="New password" oninput="checkPwStrength(this.value)">
+                                    <button type="button" class="toggle-pw" onclick="togglePw('new_password')"><i
+                                            class="fas fa-eye"></i></button>
+                                </div>
+                                <!-- Password strength bar -->
+                                <div class="pw-strength-bar">
+                                    <div id="pw-strength-fill" class="pw-strength-fill"></div>
+                                </div>
+                                <span id="pw-strength-label" class="pw-strength-label"></span>
+                            </div>
+                            <div class="form-group">
+                                <label for="confirm_password"><i class="fas fa-lock"></i> Confirm New Password</label>
+                                <div class="password-input-wrap">
+                                    <input type="password" id="confirm_password" name="confirm_password" required
+                                        placeholder="Confirm new password">
+                                    <button type="button" class="toggle-pw" onclick="togglePw('confirm_password')"><i
+                                            class="fas fa-eye"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="pw-hint"><i class="fas fa-info-circle"></i> Min 8 chars, 1 uppercase, 1 number, 1
+                            special character.</p>
+                        <button type="submit" class="prof-btn danger-btn">
+                            <i class="fas fa-shield-alt"></i> Update Password
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Enrollment History -->
+                <div class="profile-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-history"></i> Enrollment History</h3>
+                        <span class="badge-count">{{ enrollments | length }}</span>
+                    </div>
+                    {% if enrollments %}
+                    <div class="enrollment-table-wrap">
+                        <table class="enrollment-table">
+                            <thead>
+                                <tr>
+                                    <th><i class="fas fa-graduation-cap"></i> Course</th>
+                                    <th><i class="fas fa-phone"></i> Phone</th>
+                                    <th><i class="fas fa-circle"></i> Status</th>
+                                    <th><i class="fas fa-calendar"></i> Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for e in enrollments %}
+                                <tr>
+                                    <td><strong>{{ e[3] }}</strong></td>
+                                    <td>{{ e[2] }}</td>
+                                    <td>
+                                        <span class="status-pill
+                                        {% if e[4] == 'Converted' %}status-converted
+                                        {% elif e[4] == 'Contacted' %}status-contacted
+                                        {% else %}status-pending{% endif %}">
+                                            {{ e[4] }}
+                                        </span>
+                                    </td>
+                                    <td>{{ e[5][:10] if e[5] else 'N/A' }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <p>No enrollments yet.</p>
+                        <a href="{{ url_for('index') }}" class="prof-btn primary-btn"
+                            style="display:inline-flex;width:auto;">
+                            <i class="fas fa-comment"></i> Chat with Bot to Enroll
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+
+            </div><!-- /profile-right -->
+        </div><!-- /profile-grid -->
+    </main>
+
+    <script>
+        // Preview avatar before upload & auto-submit
+        function previewAndUpload(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    document.getElementById('avatar-preview').src = e.target.result;
+                };
+                reader.readAsDataURL(input.files[0]);
+                // Submit the form
+                document.getElementById('avatar-form').submit();
+            }
+        }
+
+        // Toggle password visibility
+        function togglePw(id) {
+            const inp = document.getElementById(id);
+            inp.type = inp.type === 'password' ? 'text' : 'password';
+        }
+
+        // Password strength meter
+        function checkPwStrength(pw) {
+            const fill = document.getElementById('pw-strength-fill');
+            const label = document.getElementById('pw-strength-label');
+            let score = 0;
+            if (pw.length >= 8) score++;
+            if (/[A-Z]/.test(pw)) score++;
+            if (/[0-9]/.test(pw)) score++;
+            if (/[!@#$%^&*(),.?":{}|<>]/.test(pw)) score++;
+            if (pw.length >= 12) score++;
+
+            const levels = ['', 'Weak', 'Fair', 'Good', 'Strong', 'Very Strong'];
+            const colors = ['', '#e74c3c', '#e67e22', '#f1c40f', '#27ae60', '#16a085'];
+            const pct = (score / 5) * 100;
+
+            fill.style.width = pct + '%';
+            fill.style.background = colors[score] || '#eee';
+            label.textContent = levels[score] || '';
+            label.style.color = colors[score] || '';
+        }
+
+        // Auto-dismiss flash messages after 4s
+        document.querySelectorAll('.prof-flash').forEach(el => {
+            setTimeout(() => el.style.opacity = '0', 3800);
+            setTimeout(() => el.remove(), 4200);
+        });
+    </script>
+</body>
+
+</html>

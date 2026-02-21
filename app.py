@@ -13,6 +13,7 @@ import re
 import sqlite3
 import requests
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 
 from flask_mail import Mail, Message
 from flask_wtf.csrf import CSRFProtect
@@ -20,6 +21,14 @@ from flask_talisman import Talisman
 import bcrypt
 import datetime
 import jwt
+
+# Avatar upload config
+AVATAR_UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'avatars')
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+os.makedirs(AVATAR_UPLOAD_FOLDER, exist_ok=True)
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'MITU_SECRET_KEY_2024')
@@ -150,6 +159,8 @@ def init_db():
             cursor.execute("ALTER TABLE users ADD COLUMN lock_until DATETIME")
         if 'created_at' not in columns:
             cursor.execute("ALTER TABLE users ADD COLUMN created_at DATETIME DEFAULT CURRENT_TIMESTAMP")
+        if 'avatar' not in columns:
+            cursor.execute("ALTER TABLE users ADD COLUMN avatar TEXT DEFAULT NULL")
 
         # Login Activity Table
         cursor.execute('''
@@ -745,6 +756,171 @@ def delete_session(session_id):
     except Exception as e:
         print(f"Error deleting session: {e}")
         return jsonify({"error": str(e)}), 500
+
+@app.route("/react", methods=["POST"])
+def react():
+    """Receive 👍/👎 reaction feedback from the user."""
+    if "user_id" not in session:
+        return jsonify({"error": "Not logged in"}), 401
+
+    data = request.get_json()
+    reaction = data.get("reaction", "")  # 'like' or 'dislike'
+    user_id = session["user_id"]
+
+    # Log reaction (can be extended to store per-message in DB)
+    print(f"[REACTION] user_id={user_id} reaction={reaction}")
+
+    return jsonify({"status": "ok", "reaction": reaction})
+
+
+# ---------- Profile Routes ----------
+@app.route("/profile", methods=["GET", "POST"])
+def profile():
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    user_id = session["user_id"]
+
+    if request.method == "POST":
+        new_name  = request.form.get("name", "").strip()
+        new_email = request.form.get("email", "").strip().lower()
+
+        if not new_name or not new_email:
+            flash("Name and email cannot be empty.", "error")
+            return redirect(url_for("profile"))
+
+        try:
+            with sqlite3.connect(DATABASE) as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    "UPDATE users SET name = ?, email = ? WHERE id = ?",
+                    (new_name, new_email, user_id)
+                )
+                conn.commit()
+            session["user_name"] = new_name
+            flash("Profile updated successfully! ✅", "success")
+        except sqlite3.IntegrityError:
+            flash("That email is already in use by another account.", "error")
+
+        return redirect(url_for("profile"))
+
+    # GET – fetch user data + enrollment history
+    with sqlite3.connect(DATABASE) as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT id, name, email, role, is_verified, created_at, avatar "
+            "FROM users WHERE id = ?",
+            (user_id,)
+        )
+        user = cursor.fetchone()
+
+        cursor.execute(
+            "SELECT full_name, email, phone, course_name, status, created_at "
+            "FROM leads WHERE user_id = ? ORDER BY created_at DESC",
+            (user_id,)
+        )
+        enrollments = cursor.fetchall()
+
+    if not user:
+        flash("User not found.", "error")
+        return redirect(url_for("logout"))
+
+    return render_template(
+        "profile.html",
+        user=user,
+        enrollments=enrollments,
+        user_name=session.get("user_name")
+    )
+
+
+@app.route("/profile/change_password", methods=["POST"])
+def change_password():
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    user_id      = session["user_id"]
+    current_pw   = request.form.get("current_password", "")
+    new_pw       = request.form.get("new_password", "")
+    confirm_pw   = request.form.get("confirm_password", "")
+
+    if new_pw != confirm_pw:
+        flash("New passwords do not match.", "error")
+        return redirect(url_for("profile"))
+
+    if len(new_pw) < 8:
+        flash("Password must be at least 8 characters.", "error")
+        return redirect(url_for("profile"))
+    if not re.search(r'[A-Z]', new_pw):
+        flash("Password must contain at least one uppercase letter.", "error")
+        return redirect(url_for("profile"))
+    if not re.search(r'[0-9]', new_pw):
+        flash("Password must contain at least one number.", "error")
+        return redirect(url_for("profile"))
+    if not re.search(r'[!@#$%^&*(),.?":{}|<>]', new_pw):
+        flash("Password must contain at least one special character.", "error")
+        return redirect(url_for("profile"))
+
+    with sqlite3.connect(DATABASE) as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT password FROM users WHERE id = ?", (user_id,))
+        row = cursor.fetchone()
+
+    if not row or not check_password(row[0], current_pw):
+        flash("Current password is incorrect.", "error")
+        return redirect(url_for("profile"))
+
+    hashed = hash_password(new_pw)
+    with sqlite3.connect(DATABASE) as conn:
+        cursor = conn.cursor()
+        cursor.execute("UPDATE users SET password = ? WHERE id = ?", (hashed, user_id))
+        conn.commit()
+
+    flash("Password changed successfully! 🔒", "success")
+    return redirect(url_for("profile"))
+
+
+@app.route("/profile/upload_avatar", methods=["POST"])
+def upload_avatar():
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    user_id = session["user_id"]
+
+    if "avatar" not in request.files:
+        flash("No file selected.", "error")
+        return redirect(url_for("profile"))
+
+    file = request.files["avatar"]
+
+    if file.filename == "":
+        flash("No file selected.", "error")
+        return redirect(url_for("profile"))
+
+    if not allowed_file(file.filename):
+        flash("Invalid file type. Allowed: PNG, JPG, JPEG, GIF, WEBP.", "error")
+        return redirect(url_for("profile"))
+
+    # Limit file size to 2MB
+    file.seek(0, 2)
+    file_size = file.tell()
+    file.seek(0)
+    if file_size > 2 * 1024 * 1024:
+        flash("File too large. Maximum size is 2MB.", "error")
+        return redirect(url_for("profile"))
+
+    ext      = file.filename.rsplit('.', 1)[1].lower()
+    filename = secure_filename(f"avatar_{user_id}.{ext}")
+    filepath = os.path.join(AVATAR_UPLOAD_FOLDER, filename)
+    file.save(filepath)
+
+    with sqlite3.connect(DATABASE) as conn:
+        cursor = conn.cursor()
+        cursor.execute("UPDATE users SET avatar = ? WHERE id = ?", (filename, user_id))
+        conn.commit()
+
+    flash("Profile picture updated! 🖼️", "success")
+    return redirect(url_for("profile"))
+
 
 if __name__ == "__main__":
     app.run(debug=True, host='0.0.0.0')

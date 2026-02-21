@@ -46,6 +46,12 @@
                     <span>Activity</span>
                 </a>
             </li>
+            <li class="nav-item">
+                <a href="{{ url_for('profile') }}" class="nav-link">
+                    <i class="fas fa-user-circle"></i>
+                    <span>My Profile</span>
+                </a>
+            </li>
         </ul>
         <div class="logout-section">
             <a href="{{ url_for('logout') }}" class="nav-link" style="color: #ef4444;">
@@ -65,6 +71,12 @@
             <div class="header-actions">
                 <button class="btn-primary" onclick="window.location.reload()"><i class="fas fa-sync-alt"></i> Refresh
                     Data</button>
+                <a href="{{ url_for('profile') }}" class="admin-avatar-chip" title="My Profile">
+                    <img src="https://ui-avatars.com/api/?name=Admin&background=3b82f6&color=fff&size=36" alt="Admin"
+                        class="admin-avatar-img">
+                    <span>My Profile</span>
+                    <i class="fas fa-chevron-right" style="font-size:0.7rem; opacity:0.6;"></i>
+                </a>
             </div>
         </header>
 

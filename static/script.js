@@ -1,3 +1,13 @@
+// ============================================================
+// MITU Chatbot - script.js  (Full enhanced version)
+// Features: Typing indicator, Reactions, Search, Export, Voice
+// ============================================================
+
+let isSoundOn = true;
+const synth = window.speechSynthesis;
+let voices = [];
+
+// ---------- Send Message ----------
 function sendMessage() {
     var userInput = document.getElementById("user-input").value;
     var sessionInput = document.getElementById("current-session-id");
@@ -6,28 +16,24 @@ function sendMessage() {
     if (userInput.trim() === "") return;
 
     var chatBox = document.getElementById("chat-box");
-
-    // Get username from the DOM
     const userName = document.querySelector(".user-info strong").textContent || "User";
 
-    // Create user message element
+    // Append user message
     var userMessageDiv = document.createElement("div");
     userMessageDiv.className = "user-message message";
     userMessageDiv.innerHTML = `
-        <div class="content">${userInput}</div>
+        <div class="content">${escapeHtml(userInput)}</div>
         <div class="avatar"><img src="https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=random" alt="User"></div>
     `;
     chatBox.appendChild(userMessageDiv);
-
-    // Clear input field
     document.getElementById("user-input").value = "";
-
-    // Scroll to bottom
     chatBox.scrollTop = chatBox.scrollHeight;
+
+    // Show typing indicator
+    const typingDiv = showTypingIndicator(chatBox);
 
     const csrfToken = document.getElementById("csrf_token").value;
 
-    // Send request to Flask backend
     fetch("/chat", {
         method: "POST",
         headers: {
@@ -38,23 +44,26 @@ function sendMessage() {
     })
         .then(response => response.json())
         .then(data => {
-            // Check if this was a new session and we need to reload to show it in sidebar
+            // Remove typing indicator
+            removeTypingIndicator(typingDiv);
+
             if (!sessionId && data.session_id) {
                 window.location.href = "/?session_id=" + data.session_id;
                 return;
             }
-            // Create bot message element
+
+            // Build bot message
             var botMessageDiv = document.createElement("div");
             botMessageDiv.className = "bot-message message";
+            botMessageDiv.dataset.messageId = data.message_id || "";
 
             let messageContent = `
             <div class="avatar"><img src="/static/logo.png" alt="Bot"></div>
-            <div class="content">
-            `;
+            <div class="message-wrapper">
+                <div class="content">`;
 
             if (data.progress) {
                 messageContent += `<div class="progress-text">${data.progress}</div>`;
-                // Auto-open courses if indicated
                 if (data.progress === "Opening Courses...") {
                     setTimeout(showCourses, 1000);
                 }
@@ -65,58 +74,265 @@ function sendMessage() {
             if (data.buttons && data.buttons.length > 0) {
                 messageContent += `<div class="quick-replies">`;
                 data.buttons.forEach(btn => {
-                    // Escape single quotes in payload
                     const safePayload = btn.payload.replace("'", "\\'");
                     messageContent += `<button class="quick-reply-btn" onclick="sendQuickReply('${safePayload}')">${btn.label}</button>`;
                 });
                 messageContent += `</div>`;
             }
 
-            messageContent += `</div>`; // Close content div
+            messageContent += `</div>
+                <div class="reaction-bar">
+                    <button class="reaction-btn" onclick="reactToMessage(this, 'like')" title="Helpful">👍</button>
+                    <button class="reaction-btn" onclick="reactToMessage(this, 'dislike')" title="Not helpful">👎</button>
+                </div>
+            </div>`;
 
             botMessageDiv.innerHTML = messageContent;
             chatBox.appendChild(botMessageDiv);
 
-            // Scroll to bottom
+            // Animate in
+            botMessageDiv.style.opacity = "0";
+            botMessageDiv.style.transform = "translateY(8px)";
+            requestAnimationFrame(() => {
+                botMessageDiv.style.transition = "opacity 0.3s ease, transform 0.3s ease";
+                botMessageDiv.style.opacity = "1";
+                botMessageDiv.style.transform = "translateY(0)";
+            });
+
             chatBox.scrollTop = chatBox.scrollHeight;
 
-            // Speak response if sound is on
+            // Text-to-speech
             if (isSoundOn) {
-                // Strip HTML for speech
                 var tempDiv = document.createElement("div");
                 tempDiv.innerHTML = data.reply;
                 speakText(tempDiv.textContent || tempDiv.innerText || "");
             }
         })
         .catch(error => {
+            removeTypingIndicator(typingDiv);
             console.error("Error:", error);
         });
 }
 
+// ---------- Typing Indicator ----------
+function showTypingIndicator(chatBox) {
+    const typingDiv = document.createElement("div");
+    typingDiv.className = "bot-message message typing-message";
+    typingDiv.id = "typing-indicator";
+    typingDiv.innerHTML = `
+        <div class="avatar"><img src="/static/logo.png" alt="Bot"></div>
+        <div class="typing-bubble">
+            <span></span><span></span><span></span>
+        </div>
+    `;
+    chatBox.appendChild(typingDiv);
+    chatBox.scrollTop = chatBox.scrollHeight;
+    return typingDiv;
+}
+
+function removeTypingIndicator(typingDiv) {
+    if (typingDiv && typingDiv.parentNode) {
+        typingDiv.parentNode.removeChild(typingDiv);
+    }
+}
+
+// ---------- Message Reactions ----------
+function reactToMessage(btn, type) {
+    const bar = btn.closest(".reaction-bar");
+    const allBtns = bar.querySelectorAll(".reaction-btn");
+
+    // Toggle off if already active
+    if (btn.classList.contains("active")) {
+        btn.classList.remove("active");
+        btn.classList.remove("animate-reaction");
+        return;
+    }
+
+    // Reset all
+    allBtns.forEach(b => {
+        b.classList.remove("active", "animate-reaction");
+    });
+
+    // Activate clicked
+    btn.classList.add("active", "animate-reaction");
+
+    // Show toast feedback
+    showToast(type === "like" ? "Thanks for the feedback! 😊" : "We'll work on improving that 🙏");
+
+    // Optionally send feedback to backend (non-blocking)
+    const csrfToken = document.getElementById("csrf_token").value;
+    fetch("/react", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken },
+        body: JSON.stringify({ reaction: type })
+    }).catch(() => { }); // Silently fail if endpoint not ready
+}
+
+// ---------- Toast Notification ----------
+function showToast(message) {
+    let toast = document.getElementById("toast-notification");
+    if (!toast) {
+        toast = document.createElement("div");
+        toast.id = "toast-notification";
+        document.body.appendChild(toast);
+    }
+    toast.textContent = message;
+    toast.classList.add("show");
+    setTimeout(() => toast.classList.remove("show"), 2800);
+}
+
+// ---------- Chat Search (Session Filter) ----------
+function filterSessions(query) {
+    const wrappers = document.querySelectorAll("#session-list .session-wrapper");
+    const q = query.toLowerCase().trim();
+    wrappers.forEach(wrapper => {
+        const title = wrapper.dataset.title || "";
+        wrapper.style.display = title.includes(q) ? "flex" : "none";
+    });
+}
+
+// ---------- Export Chat ----------
+function showExportMenu() {
+    const dropdown = document.getElementById("export-dropdown");
+    dropdown.classList.toggle("visible");
+    // Close when clicking elsewhere
+    setTimeout(() => {
+        document.addEventListener("click", function closeDropdown(e) {
+            if (!e.target.closest("#export-btn") && !e.target.closest(".export-dropdown")) {
+                dropdown.classList.remove("visible");
+                document.removeEventListener("click", closeDropdown);
+            }
+        });
+    }, 10);
+}
+
+function exportChat(format) {
+    document.getElementById("export-dropdown").classList.remove("visible");
+    const chatBox = document.getElementById("chat-box");
+    const messages = chatBox.querySelectorAll(".message");
+
+    if (messages.length === 0) {
+        showToast("No messages to export!");
+        return;
+    }
+
+    // Build text lines
+    const lines = [];
+    lines.push("=== MITU Chatbot - Chat Export ===");
+    lines.push(`Exported: ${new Date().toLocaleString()}`);
+    lines.push("=".repeat(40));
+    lines.push("");
+
+    messages.forEach(msg => {
+        if (msg.id === "typing-indicator") return;
+        const isUser = msg.classList.contains("user-message");
+        const contentEl = msg.querySelector(".content");
+        if (!contentEl) return;
+        const text = contentEl.innerText.trim();
+        if (!text) return;
+        const prefix = isUser ? "You       " : "MITU Bot  ";
+        const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        lines.push(`[${time}] ${prefix}: ${text}`);
+    });
+
+    const textContent = lines.join("\n");
+
+    if (format === "text") {
+        // Download as .txt
+        const blob = new Blob([textContent], { type: "text/plain" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `mitu-chat-${Date.now()}.txt`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast("Chat exported as text! ✅");
+
+    } else if (format === "pdf") {
+        // Build a printable HTML window for PDF
+        const printWindow = window.open("", "_blank");
+        printWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>MITU Chat Export</title>
+                <style>
+                    body { font-family: Arial, sans-serif; padding: 30px; color: #333; }
+                    h1 { color: #4a90e2; font-size: 20px; border-bottom: 2px solid #4a90e2; padding-bottom: 10px; }
+                    .meta { color: #888; font-size: 13px; margin-bottom: 20px; }
+                    .msg { margin: 12px 0; padding: 10px 14px; border-radius: 10px; max-width: 80%; font-size: 14px; line-height: 1.5; }
+                    .user { background: #4a90e2; color: white; margin-left: auto; text-align: right; }
+                    .bot { background: #f0f0f0; color: #333; }
+                    .sender { font-size: 11px; font-weight: bold; margin-bottom: 3px; }
+                    .chat-area { display: flex; flex-direction: column; }
+                </style>
+            </head>
+            <body>
+                <h1>🤖 MITU Chatbot — Chat Export</h1>
+                <div class="meta">Exported on: ${new Date().toLocaleString()}</div>
+                <div class="chat-area">
+        `);
+
+        chatBox.querySelectorAll(".message").forEach(msg => {
+            if (msg.id === "typing-indicator") return;
+            const isUser = msg.classList.contains("user-message");
+            const contentEl = msg.querySelector(".content");
+            if (!contentEl) return;
+            const text = contentEl.innerText.trim();
+            if (!text) return;
+            const cls = isUser ? "user" : "bot";
+            const name = isUser ? "You" : "MITU Bot";
+            printWindow.document.write(`
+                <div class="msg ${cls}">
+                    <div class="sender">${name}</div>
+                    ${escapeHtml(text)}
+                </div>
+            `);
+        });
+
+        printWindow.document.write(`</div></body></html>`);
+        printWindow.document.close();
+        printWindow.focus();
+        setTimeout(() => {
+            printWindow.print();
+        }, 500);
+        showToast("PDF print dialog opened! 📄");
+    }
+}
+
+// ---------- Helper: Escape HTML ----------
+function escapeHtml(text) {
+    return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+// ---------- Quick Replies ----------
 function sendQuickReply(payload) {
     const input = document.getElementById("user-input");
     input.value = payload;
-
-    // Simulate enter press or direct call
     sendMessage();
 }
 
-// Allow sending message with Enter key
+// ---------- Enter key to send ----------
 document.getElementById("user-input").addEventListener("keypress", function (event) {
     if (event.key === "Enter") {
         sendMessage();
     }
 });
 
-// Voice Input Implementation
+// ---------- Voice Input (Web Speech API) ----------
 const micBtn = document.getElementById("mic-btn");
-const userInput = document.getElementById("user-input");
+const userInputEl = document.getElementById("user-input");
 
 if ("webkitSpeechRecognition" in window || "SpeechRecognition" in window) {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
 
-    recognition.continuous = false; // Stop after one sentence
+    recognition.continuous = false;
     recognition.lang = "en-US";
     recognition.interimResults = false;
 
@@ -125,38 +341,44 @@ if ("webkitSpeechRecognition" in window || "SpeechRecognition" in window) {
             recognition.stop();
         } else {
             recognition.start();
+            showToast("🎙️ Listening...");
         }
     });
 
     recognition.onstart = () => {
         micBtn.classList.add("active");
+        micBtn.title = "Stop listening";
     };
 
     recognition.onend = () => {
         micBtn.classList.remove("active");
+        micBtn.title = "Voice Input";
     };
 
     recognition.onresult = (event) => {
         const transcript = event.results[0][0].transcript;
-        userInput.value = transcript;
-        // Optional: Auto-send the message
-        // sendMessage(); 
+        userInputEl.value = transcript;
+        showToast(`🎙️ Heard: "${transcript}"`);
+        // Auto-send after recognizing voice
+        setTimeout(sendMessage, 400);
     };
 
     recognition.onerror = (event) => {
         console.error("Speech recognition error", event.error);
         micBtn.classList.remove("active");
+        if (event.error === "not-allowed") {
+            showToast("Microphone permission denied ❌");
+        } else {
+            showToast("Voice input error: " + event.error);
+        }
     };
 } else {
-    micBtn.style.display = "none"; // Hide button if not supported
+    micBtn.style.display = "none";
     console.log("Web Speech API not supported in this browser.");
 }
 
-// Text-to-Speech Implementation
+// ---------- Text-to-Speech ----------
 const soundBtn = document.getElementById("sound-btn");
-let isSoundOn = true;
-const synth = window.speechSynthesis;
-let voices = [];
 
 function populateVoices() {
     voices = synth.getVoices();
@@ -169,32 +391,17 @@ if (speechSynthesis.onvoiceschanged !== undefined) {
 
 function speakText(text) {
     if (synth.speaking) {
-        console.error("Already speaking...");
+        synth.cancel();
         return;
     }
-    if (text !== "") {
-        const speakText = new SpeechSynthesisUtterance(text);
-
-        // Select voice (Try to find Google US English or a female voice)
-        const preferredVoice = voices.find(voice =>
-            voice.name.includes("Google US English") ||
-            voice.name.includes("Google") ||
-            voice.name.includes("Female")
+    if (text) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        const preferredVoice = voices.find(v =>
+            v.name.includes("Google US English") || v.name.includes("Google") || v.name.includes("Female")
         );
-
-        if (preferredVoice) {
-            speakText.voice = preferredVoice;
-        }
-
-        speakText.onend = e => {
-            console.log("Finished speaking...");
-        };
-
-        speakText.onerror = e => {
-            console.error("Speaking error");
-        };
-
-        synth.speak(speakText);
+        if (preferredVoice) utterance.voice = preferredVoice;
+        utterance.onerror = e => console.error("Speaking error", e);
+        synth.speak(utterance);
     }
 }
 
@@ -202,24 +409,25 @@ soundBtn.addEventListener("click", () => {
     isSoundOn = !isSoundOn;
     const icon = soundBtn.querySelector("i");
     if (isSoundOn) {
-        icon.classList.remove("fa-volume-mute");
-        icon.classList.add("fa-volume-up");
+        icon.classList.replace("fa-volume-mute", "fa-volume-up");
         soundBtn.classList.add("active");
+        showToast("🔊 Sound ON");
     } else {
-        icon.classList.remove("fa-volume-up");
-        icon.classList.add("fa-volume-mute");
+        icon.classList.replace("fa-volume-up", "fa-volume-mute");
         soundBtn.classList.remove("active");
-        synth.cancel(); // Stop speaking if muted
+        synth.cancel();
+        showToast("🔇 Sound OFF");
     }
 });
 
-// Scroll to bottom on load
+// ---------- Scroll to bottom on load ----------
 window.onload = function () {
     var chatBox = document.getElementById("chat-box");
     chatBox.scrollTop = chatBox.scrollHeight;
     populateCourses();
 };
 
+// ---------- Courses Data ----------
 const courses = [
     {
         title: "Data Science & AI",
@@ -329,16 +537,13 @@ function askAboutSelectedCourse() {
     sendMessage();
 }
 
-// Close modal when clicking outside of it
 window.onclick = function (event) {
     const modal = document.getElementById("course-modal");
-    if (event.target == modal) {
-        closeModal();
-    }
+    if (event.target == modal) closeModal();
 }
-// function to delete session
+
+// ---------- Delete Session ----------
 function deleteSession(event, sessionId) {
-    // Prevent the parent link click (which would switch to that session)
     event.stopPropagation();
     event.preventDefault();
 
@@ -346,19 +551,15 @@ function deleteSession(event, sessionId) {
         const csrfToken = document.getElementById("csrf_token").value;
         fetch("/delete_session/" + sessionId, {
             method: "POST",
-            headers: {
-                "X-CSRFToken": csrfToken
-            }
+            headers: { "X-CSRFToken": csrfToken }
         })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // If the deleted session was the current one, go to new chat
                     const currentSessionId = document.getElementById("current-session-id").value;
                     if (currentSessionId === sessionId) {
                         window.location.href = "/new_chat";
                     } else {
-                        // Otherwise just reload to update sidebar
                         window.location.reload();
                     }
                 } else {

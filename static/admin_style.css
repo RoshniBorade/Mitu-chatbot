@@ -464,3 +464,42 @@ button {
         gap: 15px;
     }
 }
+
+/* ── Admin Profile Avatar Chip (Header) ── */
+.admin-avatar-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 6px 14px 6px 6px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 30px;
+    text-decoration: none;
+    color: var(--text-main);
+    font-size: 0.88rem;
+    font-weight: 500;
+    transition: all 0.25s ease;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.admin-avatar-chip:hover {
+    background: #eff6ff;
+    border-color: var(--primary-light);
+    color: var(--primary-light);
+    box-shadow: 0 3px 10px rgba(59, 130, 246, 0.15);
+    transform: translateY(-1px);
+}
+
+.admin-avatar-img {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--primary-light);
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}

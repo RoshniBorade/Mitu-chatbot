@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatbot - AI Assistant</title>
+    <title>MITU Chatbot - AI Assistant</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -23,12 +23,23 @@
             </div>
             <nav class="nav-links">
                 <a href="{{ url_for('new_chat') }}" class="new-chat-btn"><i class="fas fa-plus"></i> New Chat</a>
-                <a href="javascript:void(0)" onclick="showCourses()" class="nav-item courses-btn"><i
-                        class="fas fa-graduation-cap"></i> Courses</a>
+                <a href="javascript:void(0)" onclick="showCourses()" class="nav-item courses-btn">
+                    <i class="fas fa-graduation-cap"></i> Courses
+                </a>
+                <a href="{{ url_for('profile') }}" class="nav-item">
+                    <i class="fas fa-user-circle"></i> My Profile
+                </a>
 
-                <div class="session-list">
+                <!-- Search Box -->
+                <div class="search-box">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" id="session-search" placeholder="Search chats..."
+                        oninput="filterSessions(this.value)">
+                </div>
+
+                <div class="session-list" id="session-list">
                     {% for session in sessions %}
-                    <div class="session-wrapper">
+                    <div class="session-wrapper" data-title="{{ session[1]|lower }}">
                         <a href="{{ url_for('index', session_id=session[0]) }}"
                             class="session-item {% if session[0]|string == current_session_id %}active{% endif %}">
                             <i class="fas fa-comment"></i>
@@ -50,7 +61,19 @@
         <div class="main-chat" id="main-chat-window">
             <div class="chat-header">
                 <h3 id="chat-title">Chat Session</h3>
-                <button id="sound-btn" class="icon-btn header-btn"><i class="fas fa-volume-up"></i></button>
+                <div class="header-actions">
+                    <button id="export-btn" class="icon-btn header-btn" title="Export Chat" onclick="showExportMenu()">
+                        <i class="fas fa-download"></i>
+                    </button>
+                    <!-- Export Dropdown -->
+                    <div class="export-dropdown" id="export-dropdown">
+                        <button onclick="exportChat('text')"><i class="fas fa-file-alt"></i> Export as Text</button>
+                        <button onclick="exportChat('pdf')"><i class="fas fa-file-pdf"></i> Export as PDF</button>
+                    </div>
+                    <button id="sound-btn" class="icon-btn header-btn" title="Toggle Sound">
+                        <i class="fas fa-volume-up"></i>
+                    </button>
+                </div>
             </div>
             <div class="chat-box" id="chat-box">
                 <!-- Messages will appear here -->
@@ -70,7 +93,15 @@
                 {% else %}
                 <div class="bot-message message">
                     <div class="avatar"><img src="{{ url_for('static', filename='logo.png') }}" alt="Bot"></div>
-                    <div class="content">{{ message }}</div>
+                    <div class="message-wrapper">
+                        <div class="content">{{ message }}</div>
+                        <div class="reaction-bar">
+                            <button class="reaction-btn" onclick="reactToMessage(this, 'like')"
+                                title="Helpful">👍</button>
+                            <button class="reaction-btn" onclick="reactToMessage(this, 'dislike')"
+                                title="Not helpful">👎</button>
+                        </div>
+                    </div>
                 </div>
                 {% endif %}
                 {% endfor %}
@@ -79,8 +110,8 @@
                 <input type="hidden" id="current-session-id"
                     value="{{ current_session_id if current_session_id else '' }}">
                 <input type="text" id="user-input" placeholder="Type your message...">
-                <button id="mic-btn" class="icon-btn"><i class="fas fa-microphone"></i></button>
-                <button onclick="sendMessage()" id="send-btn" class="icon-btn"><i
+                <button id="mic-btn" class="icon-btn" title="Voice Input"><i class="fas fa-microphone"></i></button>
+                <button onclick="sendMessage()" id="send-btn" class="icon-btn" title="Send"><i
                         class="fas fa-paper-plane"></i></button>
             </div>
         </div>

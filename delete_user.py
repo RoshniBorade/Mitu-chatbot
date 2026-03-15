@@ -1,7 +1,6 @@
-import sqlite3
+import db
 import os
 
-DATABASE = 'database.db'
 EMAIL_TO_DELETE = 'roshh5432105@gmail.com'
 
 def delete_user_by_email(email):
@@ -10,7 +9,7 @@ def delete_user_by_email(email):
         return
 
     try:
-        conn = sqlite3.connect(DATABASE)
+        conn = db.connect()
         cursor = conn.cursor()
 
         # Find user ID

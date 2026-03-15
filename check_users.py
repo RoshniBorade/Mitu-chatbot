@@ -1,5 +1,5 @@
-import sqlite3
-conn = sqlite3.connect('database.db')
+import db
+conn = db.connect()
 cursor = conn.cursor()
 cursor.execute("SELECT email, name, role FROM users")
 users = cursor.fetchall()

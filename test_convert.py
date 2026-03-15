@@ -1,7 +1,13 @@
-import sqlite3
-conn = sqlite3.connect('database.db')
-cursor = conn.cursor()
-cursor.execute("UPDATE leads SET status = 'Converted' WHERE id = 2")
-conn.commit()
-print("Updated lead 2 to Converted")
-conn.close()
+import db
+
+def test():
+    with db.connect() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT created_at FROM users LIMIT 1")
+        row = cursor.fetchone()
+        if row:
+            print(f"created_at value: {repr(row[0])}, type: {type(row[0])}")
+        else:
+            print("No users found to test.")
+        
+test()

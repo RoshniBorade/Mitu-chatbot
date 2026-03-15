@@ -1,10 +1,9 @@
-import sqlite3
+import db
 
-DATABASE = 'database.db'
 
 def clear_users():
     try:
-        conn = sqlite3.connect(DATABASE)
+        conn = db.connect()
         cursor = conn.cursor()
         
         # Deleting in order to respect potential foreign keys

@@ -10,7 +10,7 @@ load_dotenv()
 import os
 import random
 import re
-import sqlite3
+import db
 import requests
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
@@ -112,20 +112,19 @@ def verify_token(token):
         return None
 
 # ---------- Database Setup ----------
-DATABASE = 'database.db'
 
 def init_db():
-    with sqlite3.connect(DATABASE) as conn:
+    with db.connect() as conn:
         cursor = conn.cursor()
         
         # User Table Update
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id INTEGER PRIMARY KEY AUTO_INCREMENT,
                 name TEXT NOT NULL,
-                email TEXT NOT NULL UNIQUE,
+                email VARCHAR(255) NOT NULL UNIQUE,
                 password TEXT NOT NULL,
-                role TEXT DEFAULT 'Student',
+                role VARCHAR(50) DEFAULT 'Student',
                 google_id TEXT,
                 is_verified INTEGER DEFAULT 0,
                 verification_token TEXT,
@@ -138,11 +137,11 @@ def init_db():
         ''')
 
         # Check for missing columns in existing users table (Migration)
-        cursor.execute("PRAGMA table_info(users)")
-        columns = [column[1] for column in cursor.fetchall()]
+        cursor.execute("SHOW COLUMNS FROM users")
+        columns = [column[0] for column in cursor.fetchall()]
         
         if 'role' not in columns:
-            cursor.execute("ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'Student'")
+            cursor.execute("ALTER TABLE users ADD COLUMN role VARCHAR(50) DEFAULT 'Student'")
         if 'google_id' not in columns:
             cursor.execute("ALTER TABLE users ADD COLUMN google_id TEXT")
         if 'is_verified' not in columns:
@@ -160,12 +159,12 @@ def init_db():
         if 'created_at' not in columns:
             cursor.execute("ALTER TABLE users ADD COLUMN created_at DATETIME DEFAULT CURRENT_TIMESTAMP")
         if 'avatar' not in columns:
-            cursor.execute("ALTER TABLE users ADD COLUMN avatar TEXT DEFAULT NULL")
+            cursor.execute("ALTER TABLE users ADD COLUMN avatar VARCHAR(255) DEFAULT NULL")
 
         # Login Activity Table
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS login_activity (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id INTEGER PRIMARY KEY AUTO_INCREMENT,
                 user_id INTEGER,
                 timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
                 ip_address TEXT,
@@ -176,7 +175,7 @@ def init_db():
 
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS sessions (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id INTEGER PRIMARY KEY AUTO_INCREMENT,
                 user_id INTEGER NOT NULL,
                 title TEXT,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -185,7 +184,7 @@ def init_db():
         ''')
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS messages (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id INTEGER PRIMARY KEY AUTO_INCREMENT,
                 user_id INTEGER NOT NULL,
                 session_id INTEGER,
                 sender TEXT NOT NULL,
@@ -198,13 +197,13 @@ def init_db():
 
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS leads (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id INTEGER PRIMARY KEY AUTO_INCREMENT,
                 user_id INTEGER,
                 full_name TEXT,
                 email TEXT,
                 phone TEXT,
                 course_name TEXT,
-                status TEXT DEFAULT 'Pending',
+                status VARCHAR(50) DEFAULT 'Pending',
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (user_id) REFERENCES users(id)
             )
@@ -268,7 +267,7 @@ def index():
     messages = []
 
     try:
-        with sqlite3.connect(DATABASE) as conn:
+        with db.connect() as conn:
             cursor = conn.cursor()
             
             # Fetch all sessions for the user
@@ -324,7 +323,7 @@ def signup():
         token = create_verification_token(email)
 
         try:
-            with sqlite3.connect(DATABASE) as conn:
+            with db.connect() as conn:
                 cursor = conn.cursor()
                 cursor.execute("""
                     INSERT INTO users (name, email, password, role, verification_token, is_verified) 
@@ -340,7 +339,7 @@ def signup():
 
             flash("Account created! Please login.", "success")
             return redirect(url_for("login"))
-        except sqlite3.IntegrityError:
+        except db.IntegrityError:
             flash("Email already exists!", "error")
             return redirect(url_for("signup"))
 
@@ -353,7 +352,7 @@ def verify_email(token):
         flash("Invalid or expired verification link.", "error")
         return redirect(url_for("signup"))
     
-    with sqlite3.connect(DATABASE) as conn:
+    with db.connect() as conn:
         cursor = conn.cursor()
         cursor.execute("UPDATE users SET is_verified = 1, verification_token = NULL WHERE email = ?", (email,))
         conn.commit()
@@ -368,7 +367,7 @@ def login():
         password = request.form["password"]
         remember = request.form.get("remember") == "on"
 
-        with sqlite3.connect(DATABASE) as conn:
+        with db.connect() as conn:
             cursor = conn.cursor()
             cursor.execute("SELECT id, name, email, password, role, is_verified, failed_attempts, lock_until FROM users WHERE LOWER(email) = ?", (email.lower(),))
             user = cursor.fetchone()
@@ -426,7 +425,7 @@ def forgot_password():
         token = create_reset_token(email)
         expiry = (datetime.datetime.now() + datetime.timedelta(minutes=15)).strftime('%Y-%m-%d %H:%M:%S')
 
-        with sqlite3.connect(DATABASE) as conn:
+        with db.connect() as conn:
             cursor = conn.cursor()
             cursor.execute("UPDATE users SET reset_token = ?, reset_token_expiry = ? WHERE LOWER(email) = ?", 
                            (token, expiry, email.lower()))
@@ -459,7 +458,7 @@ def reset_password(token):
 
         hashed_pw = hash_password(password)
 
-        with sqlite3.connect(DATABASE) as conn:
+        with db.connect() as conn:
             cursor = conn.cursor()
             cursor.execute("UPDATE users SET password = ?, reset_token = NULL, reset_token_expiry = NULL, is_verified = 1 WHERE LOWER(email) = ?", 
                            (hashed_pw, email.lower()))
@@ -480,7 +479,7 @@ def admin_dashboard():
     course_filter = request.args.get('course', '')
     status_filter = request.args.get('status', '')
     
-    with sqlite3.connect(DATABASE) as conn:
+    with db.connect() as conn:
         cursor = conn.cursor()
         
         # Fetch login activity logs
@@ -563,7 +562,7 @@ def admin_verify_user(user_id):
         flash("Unauthorized access!", "error")
         return redirect(url_for("index"))
     
-    with sqlite3.connect(DATABASE) as conn:
+    with db.connect() as conn:
         cursor = conn.cursor()
         cursor.execute("UPDATE users SET is_verified = 1 WHERE id = ?", (user_id,))
         conn.commit()
@@ -577,7 +576,7 @@ def update_lead_status(lead_id, status):
         flash("Unauthorized access!", "error")
         return redirect(url_for("index"))
     
-    with sqlite3.connect(DATABASE) as conn:
+    with db.connect() as conn:
         cursor = conn.cursor()
         cursor.execute("UPDATE leads SET status = ? WHERE id = ?", (status, lead_id))
         conn.commit()
@@ -615,7 +614,7 @@ def chat():
         if response.get('save_lead'):
             lead_data = response.get('lead_data')
             try:
-                with sqlite3.connect(DATABASE) as conn:
+                with db.connect() as conn:
                     cursor = conn.cursor()
                     cursor.execute("""
                         INSERT INTO leads (user_id, full_name, email, phone, course_name)
@@ -654,7 +653,7 @@ def chat():
             ]
 
     try:
-        with sqlite3.connect(DATABASE) as conn:
+        with db.connect() as conn:
             cursor = conn.cursor()
             
             # Create new session if none exists
@@ -697,7 +696,7 @@ def google_authorize():
         name = user_info.get('name', email.split('@')[0])
         google_id = user_info.get('sub')
         
-        with sqlite3.connect(DATABASE) as conn:
+        with db.connect() as conn:
             cursor = conn.cursor()
             cursor.execute("SELECT * FROM users WHERE email = ? OR google_id = ?", (email, google_id))
             user = cursor.fetchone()
@@ -740,14 +739,14 @@ def delete_session(session_id):
     user_id = session["user_id"]
     
     try:
-        with sqlite3.connect(DATABASE) as conn:
+        with db.connect() as conn:
             cursor = conn.cursor()
             # Ensure the session belongs to the user
             cursor.execute("SELECT id FROM sessions WHERE id = ? AND user_id = ?", (session_id, user_id))
             if not cursor.fetchone():
                 return jsonify({"error": "Session not found or unauthorized"}), 404
             
-            # Delete messages first due to foreign key constraints (though sqlite might handle it if configured with CASCADE)
+            # Delete messages first due to foreign key constraints (though mysql might handle it if configured with CASCADE)
             cursor.execute("DELETE FROM messages WHERE session_id = ?", (session_id,))
             cursor.execute("DELETE FROM sessions WHERE id = ?", (session_id,))
             conn.commit()
@@ -790,7 +789,7 @@ def profile():
             return redirect(url_for("profile"))
 
         try:
-            with sqlite3.connect(DATABASE) as conn:
+            with db.connect() as conn:
                 cursor = conn.cursor()
                 cursor.execute(
                     "UPDATE users SET name = ?, email = ? WHERE id = ?",
@@ -799,13 +798,13 @@ def profile():
                 conn.commit()
             session["user_name"] = new_name
             flash("Profile updated successfully! ✅", "success")
-        except sqlite3.IntegrityError:
+        except db.IntegrityError:
             flash("That email is already in use by another account.", "error")
 
         return redirect(url_for("profile"))
 
     # GET – fetch user data + enrollment history
-    with sqlite3.connect(DATABASE) as conn:
+    with db.connect() as conn:
         cursor = conn.cursor()
         cursor.execute(
             "SELECT id, name, email, role, is_verified, created_at, avatar "
@@ -860,7 +859,7 @@ def change_password():
         flash("Password must contain at least one special character.", "error")
         return redirect(url_for("profile"))
 
-    with sqlite3.connect(DATABASE) as conn:
+    with db.connect() as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT password FROM users WHERE id = ?", (user_id,))
         row = cursor.fetchone()
@@ -870,7 +869,7 @@ def change_password():
         return redirect(url_for("profile"))
 
     hashed = hash_password(new_pw)
-    with sqlite3.connect(DATABASE) as conn:
+    with db.connect() as conn:
         cursor = conn.cursor()
         cursor.execute("UPDATE users SET password = ? WHERE id = ?", (hashed, user_id))
         conn.commit()
@@ -913,7 +912,7 @@ def upload_avatar():
     filepath = os.path.join(AVATAR_UPLOAD_FOLDER, filename)
     file.save(filepath)
 
-    with sqlite3.connect(DATABASE) as conn:
+    with db.connect() as conn:
         cursor = conn.cursor()
         cursor.execute("UPDATE users SET avatar = ? WHERE id = ?", (filename, user_id))
         conn.commit()

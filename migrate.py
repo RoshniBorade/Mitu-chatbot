@@ -1,16 +1,15 @@
-import sqlite3
+import db
 
-DATABASE = 'database.db'
 
 def migrate():
     try:
-        conn = sqlite3.connect(DATABASE)
+        conn = db.connect()
         cursor = conn.cursor()
         
         # 1. Create sessions table
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS sessions (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id INTEGER PRIMARY KEY AUTO_INCREMENT,
                 user_id INTEGER NOT NULL,
                 title TEXT,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,

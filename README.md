@@ -77,6 +77,3 @@ A comprehensive Flask-based chatbot application with user authentication, an adm
 - `static/`: CSS and JavaScript assets.
 - `templates/`: HTML templates for different views.
 
-## 🤝 Contributing
-
-Feel free to fork this repository and submit pull requests for any enhancements or fixes.

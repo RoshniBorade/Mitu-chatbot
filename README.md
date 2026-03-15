@@ -100,11 +100,4 @@ This project has been migrated from SQLite to **MySQL** to support concurrent co
 
 ---
 
-## 📧 Contact & Support
 
-**Developer:** Roshni Borade
-**Project:** MITU Skillologies Chatbot
-**Repository:** [GitHub](https://github.com/RoshniBorade/Mitu-chatbot)
-
----
-*Created with ❤️ for MITU Skillologies.*
